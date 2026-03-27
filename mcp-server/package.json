@@ -1,0 +1,10 @@
+{
+  "name": "battery-agent-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for BatteryAgent - enables Claude Code to control battery management",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
