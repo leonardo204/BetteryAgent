@@ -1,9 +1,4 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "node --no-warnings=ExperimentalWarning .claude/dist/hud/statusline.js",
-    "padding": 2
-  },
   "hooks": {
     "SessionStart": [
       {
@@ -103,5 +98,10 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node --no-warnings=ExperimentalWarning .claude/dist/hud/statusline.js",
+    "padding": 2
   }
 }

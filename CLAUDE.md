@@ -9,7 +9,7 @@
 
 이 파일은 **100줄 이하**를 유지한다. 새 지침 추가 시:
 1. 매 턴 참조 필요 → 이 파일에 1줄 추가
-2. 상세/예시/테이블 → Ref-docs/claude/*.md에 작성 후 여기서 참조
+2. 상세/예시/테이블 → ref-docs/*.md에 작성 후 여기서 참조
 3. ref-docs 헤더: `# 제목 — 한 줄 설명` (모델이 첫 줄만 보고 필요 여부 판단)
 
 ---
@@ -24,7 +24,7 @@
 
 | 항목 | 값 |
 |------|-----|
-| 기술 스택 | macOS 13+, Swift, SwiftUI, IOKit, SMC |
+| 기술 스택 | macOS 14+, Swift, SwiftUI, IOKit, SMC |
 | 빌드 방법 | Xcode → BatteryAgent scheme |
 | 상태 | 개발 중 |
 | 원격 저장소 | https://github.com/leonardo204/BetteryAgent |

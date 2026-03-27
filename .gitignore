@@ -30,3 +30,4 @@ npm-debug.log*
 .claude/.hud_cache
 .claude/.hook_feedback
 .claude/.project_root
+.claude/.messenger_enabled
