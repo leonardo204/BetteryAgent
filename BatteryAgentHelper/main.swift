@@ -126,8 +126,14 @@ func runDaemon() -> Int32 {
         return 1
     }
 
-    // Allow all users to connect
-    chmod(socketPath, 0o777)
+    // Restrict socket access to root and admin group only
+    chmod(socketPath, 0o770)
+    let adminGroup = "admin"
+    adminGroup.withCString { groupName in
+        if let grp = getgrnam(groupName) {
+            chown(socketPath, 0, grp.pointee.gr_gid)
+        }
+    }
 
     guard listen(sock, 5) == 0 else {
         fputs("ERROR: Failed to listen\n", stderr)

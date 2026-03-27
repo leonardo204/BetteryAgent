@@ -142,14 +142,13 @@ final class SMCClient: Sendable {
         // 3. Invoke AuthorizationExecuteWithPrivileges via dlsym
         // (deprecated but functional; accessed this way to avoid compiler warnings)
         // Signature: OSStatus(AuthorizationRef, const char*, AuthorizationFlags, char*const*, FILE**)
-        // OpaquePointer used for pointer types to satisfy @convention(c) requirements
         typealias AuthExecFn = @convention(c) (
-            OpaquePointer,        // AuthorizationRef
-            UnsafePointer<CChar>, // const char *pathToTool
-            UInt32,               // AuthorizationFlags options
-            OpaquePointer?,       // char *const *arguments
-            OpaquePointer?        // FILE **communicationsPipe
-        ) -> Int32
+            AuthorizationRef,                                        // authorization
+            UnsafePointer<CChar>,                                    // pathToTool
+            AuthorizationFlags,                                      // options
+            UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?,     // arguments
+            UnsafeMutablePointer<UnsafeMutablePointer<FILE>?>?       // communicationsPipe
+        ) -> OSStatus
 
         // RTLD_DEFAULT = (void *)(-2) on Darwin — searches all currently loaded libraries
         let rtldDefault = UnsafeMutableRawPointer(bitPattern: -2)
@@ -164,10 +163,9 @@ final class SMCClient: Sendable {
         defer { cArgs.forEach { free($0) } }
         var argv: [UnsafeMutablePointer<CChar>?] = cArgs.map { Optional($0) } + [nil]
 
-        let status: Int32 = tool.withCString { toolPath in
+        let status: OSStatus = tool.withCString { toolPath in
             argv.withUnsafeMutableBufferPointer { buf in
-                let argsOpaque: OpaquePointer? = OpaquePointer(buf.baseAddress!)
-                return authExec(auth, toolPath, 0, argsOpaque, nil)
+                authExec(auth, toolPath, [], buf.baseAddress, nil)
             }
         }
 
