@@ -37,7 +37,8 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR" "$DMG_STAGING"
 
 # ── Release 아카이브 빌드 ─────────────────────────────
-echo "▶ Release 아카이브 빌드 중..."
+XCODEBUILD_LOG="$BUILD_DIR/xcodebuild.log"
+echo "▶ Release 아카이브 빌드 중... (로그: $XCODEBUILD_LOG)"
 xcodebuild archive \
     -project "$PROJECT" \
     -scheme "$SCHEME" \
@@ -47,9 +48,18 @@ xcodebuild archive \
     CODE_SIGN_STYLE=Manual \
     CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
     DEVELOPMENT_TEAM="$TEAM_ID" \
-    2>&1 | grep -E "^.*(error:|ARCHIVE SUCCEEDED|ARCHIVE FAILED)" || true
+    > "$XCODEBUILD_LOG" 2>&1
+XCODE_EXIT=$?
+if [ $XCODE_EXIT -ne 0 ]; then
+    echo "❌ 아카이브 실패 (exit $XCODE_EXIT). 로그 마지막 30줄:"
+    tail -30 "$XCODEBUILD_LOG"
+    exit $XCODE_EXIT
+fi
 
 echo "▶ 아카이브 완료"
+
+# 아카이브 디렉터리 존재 확인
+[ -d "$ARCHIVE_PATH" ] || { echo "❌ 아카이브 디렉터리 없음: $ARCHIVE_PATH"; exit 1; }
 
 # ── 앱 추출 ───────────────────────────────────────────
 APP_PATH="$ARCHIVE_PATH/Products/Applications/$APP_NAME.app"
@@ -58,7 +68,12 @@ cp -R "$APP_PATH" "$DMG_STAGING/"
 
 # ── 코드 서명 확인 ────────────────────────────────────
 echo "▶ 코드 서명 확인..."
-codesign --verify --deep --strict "$DMG_STAGING/$APP_NAME.app" 2>&1 | tail -1
+codesign -dvvv "$DMG_STAGING/$APP_NAME.app" 2>&1
+if ! codesign --verify --deep --strict "$DMG_STAGING/$APP_NAME.app" 2>&1; then
+    echo "❌ 코드 서명 검증 실패"
+    exit 1
+fi
+echo "   서명 검증 통과"
 
 # ── DMG 생성 ──────────────────────────────────────────
 echo "▶ DMG 생성 중..."
@@ -114,9 +129,13 @@ if echo "$SUBMIT_OUTPUT" | grep -q "status: Accepted"; then
     xcrun stapler staple "$DMG_PATH"
     echo "   Staple 완료"
 
-    # Gatekeeper 검증 (앱 번들 기준)
-    echo "▶ Gatekeeper 검증..."
-    spctl --assess --verbose=2 --type execute "$DMG_STAGING/$APP_NAME.app" 2>&1 | tail -3 || true
+    # Gatekeeper 검증 (참고용 — macOS Sequoia에서 spctl 오류 가능, 공증 통과 시 무관)
+    MOUNT_POINT=$(hdiutil attach "$DMG_PATH" -nobrowse 2>/dev/null | grep '/Volumes/' | awk '{print $NF}')
+    if [ -n "$MOUNT_POINT" ]; then
+        echo "▶ Gatekeeper 검증 (마운트된 DMG)..."
+        spctl --assess --verbose=2 --type execute "$MOUNT_POINT/$APP_NAME.app" 2>&1 || echo "   ⚠️ spctl 검증 실패 (macOS 알려진 이슈 — 공증 통과 시 정상 동작)"
+        hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || true
+    fi
 else
     echo ""
     echo "⚠️  공증 실패. 로그 확인:"

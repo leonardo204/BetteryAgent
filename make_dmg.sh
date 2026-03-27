@@ -6,7 +6,6 @@ set -e
 
 APP_NAME="BatteryAgent"
 VERSION="1.0.0"
-SIGNING_IDENTITY="Developer ID Application: YONGSUB LEE (XU8HS9JUTS)"
 NOTARY_PROFILE="BatteryAgent-notary"
 
 ARCHIVE_PATH="${1:-}"
@@ -48,6 +47,23 @@ create-dmg \
 
 echo "▶ DMG 생성 완료: $(du -sh "$DMG_PATH" | cut -f1)"
 
+# ── 공증 프로파일 확인 ────────────────────────────────
+check_notary_profile() {
+    xcrun notarytool history \
+        --keychain-profile "$NOTARY_PROFILE" \
+        --no-progress > /dev/null 2>&1
+}
+
+if ! check_notary_profile; then
+    echo "⚠️  공증 프로파일 '$NOTARY_PROFILE' 을 찾을 수 없습니다."
+    echo "   xcrun notarytool store-credentials 로 프로파일을 먼저 등록하세요."
+    echo "   공증 없이 종료합니다."
+    echo ""
+    echo "✅ DMG 생성 완료 (공증 미적용): $DMG_PATH"
+    open -R "$DMG_PATH"
+    exit 0
+fi
+
 # ── 공증 ──────────────────────────────────────────────
 echo "▶ 공증 시작... (수 분 소요)"
 SUBMIT_OUTPUT=$(xcrun notarytool submit "$DMG_PATH" \
@@ -60,7 +76,10 @@ if echo "$SUBMIT_OUTPUT" | grep -q "status: Accepted"; then
     echo "▶ 공증 성공! Staple 적용 중..."
     xcrun stapler staple "$DMG_PATH"
     echo "   Staple 완료"
-    spctl --assess --verbose=2 --type execute "$DMG_STAGING/$APP_NAME.app" 2>&1 | tail -3 || true
+    MOUNT_POINT=$(mktemp -d)
+    hdiutil attach "$DMG_PATH" -mountpoint "$MOUNT_POINT" -quiet
+    spctl --assess --verbose=2 --type execute "$MOUNT_POINT/$APP_NAME.app" 2>&1 || echo "   ⚠️ spctl 검증 실패 (macOS 알려진 이슈 — 공증 통과 시 정상 동작)"
+    hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || true
 else
     echo "⚠️  공증 실패"
     SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep -o 'id: [a-f0-9-]*' | head -1 | cut -d' ' -f2)
