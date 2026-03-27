@@ -138,8 +138,8 @@ struct AITab: View {
         .formStyle(.grouped)
         .padding()
         .onAppear {
-            claudePath = findClaudePath()
-            if claudePath != nil { checkConnection() }
+            if claudePath == nil { claudePath = findClaudePath() }
+            if claudePath != nil, case .unknown = connectionStatus { checkConnection() }
         }
     }
 

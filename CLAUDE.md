@@ -53,6 +53,7 @@
 - SMC 접근은 반드시 권한 헬퍼(root)를 통해서만 수행
 - 충전 제어 키: CH0B, CH0C (충전 억제), CH0I (어댑터 비활성)
 - 히스테리시스 5%: 제한치에서 충전 차단, 제한치-5%에서 재활성화
+- **Xcode Signing & Capabilities, Team 설정은 절대 수정하지 않음** (project.pbxproj의 CODE_SIGN_*, DEVELOPMENT_TEAM 포함)
 
 ---
 
