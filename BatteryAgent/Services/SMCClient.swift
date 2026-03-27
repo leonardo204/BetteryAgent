@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import os.log
 
 final class SMCClient: Sendable {
@@ -39,22 +40,15 @@ final class SMCClient: Sendable {
         logger.info("Installing daemon from: \(helperPath)")
 
         DispatchQueue.global(qos: .userInitiated).async { [logger] in
-            let script = """
-            do shell script "'\(helperPath)' install-daemon" with administrator privileges
-            """
-            var error: NSDictionary?
-            let appleScript = NSAppleScript(source: script)
-            let result = appleScript?.executeAndReturnError(&error)
-
-            if let error {
-                let msg = error[NSAppleScript.errorMessage] as? String ?? "Unknown"
-                logger.error("Install failed: \(msg)")
-                completion(false)
-            } else {
-                let output = result?.stringValue ?? ""
-                logger.info("Install result: \(output)")
-                completion(output.hasPrefix("OK"))
+            let ok = Self.runPrivileged(tool: helperPath, args: ["install-daemon"], logger: logger)
+            if ok {
+                // Wait for daemon socket to appear (up to 3 seconds)
+                for _ in 0..<30 {
+                    Thread.sleep(forTimeInterval: 0.1)
+                    if FileManager.default.fileExists(atPath: "/tmp/BatteryAgentHelper.sock") { break }
+                }
             }
+            completion(ok)
         }
     }
 
@@ -69,9 +63,12 @@ final class SMCClient: Sendable {
                 logger.info("Socket result: \(result ?? "nil")")
                 completion(result?.hasPrefix("OK") ?? false)
             } else {
-                // Daemon not running — use osascript fallback
-                logger.info("Daemon not running, using osascript fallback")
-                let success = self.runWithAdminPrivileges(command)
+                logger.info("Daemon not running, using privileged fallback")
+                let success = Self.runPrivileged(
+                    tool: self.bundledHelperPath,
+                    args: [command],
+                    logger: logger
+                )
                 completion(success)
             }
         }
@@ -99,12 +96,10 @@ final class SMCClient: Sendable {
         }
         guard connectResult == 0 else { return nil }
 
-        // Send command
         command.withCString { ptr in
             _ = write(sock, ptr, strlen(ptr))
         }
 
-        // Read response
         var buffer = [UInt8](repeating: 0, count: 1024)
         let bytesRead = read(sock, &buffer, 1023)
         guard bytesRead > 0 else { return nil }
@@ -112,28 +107,78 @@ final class SMCClient: Sendable {
         return String(bytes: buffer.prefix(bytesRead), encoding: .utf8)
     }
 
-    // MARK: - Fallback: osascript
+    // MARK: - Privileged Execution
 
-    private func runWithAdminPrivileges(_ command: String) -> Bool {
-        let helperPath = bundledHelperPath
-        let script = """
-        do shell script "'\(helperPath)' \(command)" with administrator privileges
-        """
+    /// Runs `tool` with `args` as root using the native macOS authorization dialog.
+    /// Uses Security framework's AuthorizationExecuteWithPrivileges — no Apple Events permission needed.
+    private static func runPrivileged(tool: String, args: [String], logger: Logger) -> Bool {
+        // 1. Create authorization reference
+        var authRef: AuthorizationRef?
+        guard AuthorizationCreate(nil, nil, [], &authRef) == errAuthorizationSuccess,
+              let auth = authRef else {
+            logger.error("AuthorizationCreate failed")
+            return false
+        }
+        defer { AuthorizationFree(auth, [.destroyRights]) }
 
-        var error: NSDictionary?
-        let appleScript = NSAppleScript(source: script)
-        let result = appleScript?.executeAndReturnError(&error)
+        // 2. Show native macOS password dialog
+        let authStatus: OSStatus = kAuthorizationRightExecute.withCString { namePtr in
+            var item = AuthorizationItem(name: namePtr, valueLength: 0, value: nil, flags: 0)
+            return withUnsafeMutablePointer(to: &item) { itemPtr in
+                var rights = AuthorizationRights(count: 1, items: itemPtr)
+                return AuthorizationCopyRights(
+                    auth, &rights, nil,
+                    [.interactionAllowed, .preAuthorize, .extendRights],
+                    nil
+                )
+            }
+        }
 
-        if let error {
-            let msg = error[NSAppleScript.errorMessage] as? String ?? "Unknown"
-            logger.error("osascript failed: \(msg)")
+        guard authStatus == errAuthorizationSuccess else {
+            logger.error("Authorization denied or cancelled: \(authStatus)")
             return false
         }
 
-        let output = result?.stringValue ?? ""
-        logger.info("osascript output: \(output)")
+        // 3. Invoke AuthorizationExecuteWithPrivileges via dlsym
+        // (deprecated but functional; accessed this way to avoid compiler warnings)
+        // Signature: OSStatus(AuthorizationRef, const char*, AuthorizationFlags, char*const*, FILE**)
+        // OpaquePointer used for pointer types to satisfy @convention(c) requirements
+        typealias AuthExecFn = @convention(c) (
+            OpaquePointer,        // AuthorizationRef
+            UnsafePointer<CChar>, // const char *pathToTool
+            UInt32,               // AuthorizationFlags options
+            OpaquePointer?,       // char *const *arguments
+            OpaquePointer?        // FILE **communicationsPipe
+        ) -> Int32
+
+        // RTLD_DEFAULT = (void *)(-2) on Darwin — searches all currently loaded libraries
+        let rtldDefault = UnsafeMutableRawPointer(bitPattern: -2)
+        guard let sym = dlsym(rtldDefault, "AuthorizationExecuteWithPrivileges") else {
+            logger.error("AuthorizationExecuteWithPrivileges symbol not found")
+            return false
+        }
+        let authExec = unsafeBitCast(sym, to: AuthExecFn.self)
+
+        // 4. Build null-terminated C argument array and execute
+        let cArgs: [UnsafeMutablePointer<CChar>] = args.compactMap { strdup($0) }
+        defer { cArgs.forEach { free($0) } }
+        var argv: [UnsafeMutablePointer<CChar>?] = cArgs.map { Optional($0) } + [nil]
+
+        let status: Int32 = tool.withCString { toolPath in
+            argv.withUnsafeMutableBufferPointer { buf in
+                let argsOpaque: OpaquePointer? = OpaquePointer(buf.baseAddress!)
+                return authExec(auth, toolPath, 0, argsOpaque, nil)
+            }
+        }
+
+        if status != errAuthorizationSuccess {
+            logger.error("AuthorizationExecuteWithPrivileges failed: \(status)")
+            return false
+        }
         return true
     }
+
+    // MARK: - Helper Path
 
     private var bundledHelperPath: String {
         if let path = Bundle.main.path(forAuxiliaryExecutable: "BatteryAgentHelper") {
