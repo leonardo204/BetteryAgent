@@ -2,7 +2,6 @@ import Foundation
 
 extension Notification.Name {
     static let statusBarNeedsUpdate = Notification.Name("statusBarNeedsUpdate")
-    static let apiServerToggled = Notification.Name("apiServerToggled")
     static let settingsTabSelected = Notification.Name("settingsTabSelected")
 }
 
@@ -22,8 +21,6 @@ enum Constants {
         static let rechargeThreshold = "rechargeThreshold"
         static let showPercentage = "showPercentage"
         static let notifyOnComplete = "notifyOnComplete"
-        static let apiEnabled = "apiEnabled"
-        static let apiPort = "apiPort"
         static let claudeAPIKey = "claudeAPIKey"
         static let claudeAPIBase = "claudeAPIBase"
         static let claudeModel = "claudeModel"
@@ -46,5 +43,4 @@ enum Constants {
     static let hysteresis: Int = 5
     static let historyRetentionDays = 7
     static let historyRecordInterval: TimeInterval = 60 // record every 60s
-    static let defaultAPIPort: UInt16 = 18080
 }

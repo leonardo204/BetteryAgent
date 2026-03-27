@@ -8,7 +8,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var viewModel: BatteryViewModel?
     private var settingsWindow: NSWindow?
     private var iconUpdateTimer: Timer?
-    private var apiServer: APIServer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -18,25 +17,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupPopover(viewModel: vm)
         startIconUpdates()
         updateStatusBar()
-
-        // API Server
-        let server = APIServer()
-        self.apiServer = server
-        if UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.apiEnabled) {
-            server.start(viewModel: vm)
-        }
-
-        NotificationCenter.default.addObserver(forName: .apiServerToggled, object: nil, queue: .main) { [weak self] note in
-            let enabled = note.object as? Bool ?? false
-            Task { @MainActor in
-                guard let self, let vm = self.viewModel else { return }
-                if enabled {
-                    self.apiServer?.start(viewModel: vm)
-                } else {
-                    self.apiServer?.stop()
-                }
-            }
-        }
 
         NotificationCenter.default.addObserver(
             forName: .statusBarNeedsUpdate, object: nil, queue: .main

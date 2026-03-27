@@ -1,175 +1,112 @@
 import SwiftUI
-import Security
 
 struct AITab: View {
     @Bindable var viewModel: BatteryViewModel
-    @State private var apiEnabled: Bool = UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.apiEnabled)
-    @State private var apiPort: String = String(UserDefaults.standard.integer(forKey: Constants.UserDefaultsKey.apiPort).nonZeroOr(Int(Constants.defaultAPIPort)))
-    @State private var connectionStatus: String = "확인 중..."
 
-    // Claude API 설정
-    @State private var claudeAPIKey: String = KeychainHelper.load(key: Constants.UserDefaultsKey.claudeAPIKey) ?? ""
-    @State private var claudeAPIBase: String = UserDefaults.standard.string(forKey: Constants.UserDefaultsKey.claudeAPIBase) ?? ""
-    @State private var claudeModel: String = UserDefaults.standard.string(forKey: Constants.UserDefaultsKey.claudeModel) ?? "claude-opus-4-5"
+    enum ConnectionStatus {
+        case unknown, checking, connected(String), disconnected(String)
+        var color: Color {
+            switch self {
+            case .connected: return .green
+            case .disconnected: return .red
+            case .checking: return .yellow
+            case .unknown: return .gray
+            }
+        }
+        var label: String {
+            switch self {
+            case .unknown: return "확인 안됨"
+            case .checking: return "확인 중..."
+            case .connected(let model): return "연결됨 (\(model))"
+            case .disconnected(let reason): return reason
+            }
+        }
+    }
+
+    // Claude Code
+    @State private var claudePath: String? = nil
+    @State private var connectionStatus: ConnectionStatus = .unknown
+    @State private var isCheckingConnection = false
 
     // 분석 상태
-    @State private var analysisResult: String = ""
     @State private var isAnalyzing = false
+    @State private var report = ""
     @State private var isCopied = false
 
-    // 추천 설정 파싱
-    @State private var recommendedChargeLimit: Int? = nil
-    @State private var showApplyRecommendation = false
-
-    private let availableModels = [
-        "claude-opus-4-5",
-        "claude-sonnet-4-5",
-        "claude-haiku-4-5"
-    ]
+    struct AppliedSettings { var chargeLimit: Int }
+    @State private var appliedSettings: AppliedSettings? = nil
 
     var body: some View {
         Form {
-            Section("API 서버") {
-                Toggle("API 서버 활성화", isOn: $apiEnabled)
-                    .onChange(of: apiEnabled) { _, newValue in
-                        UserDefaults.standard.set(newValue, forKey: Constants.UserDefaultsKey.apiEnabled)
-                        NotificationCenter.default.post(name: .apiServerToggled, object: newValue)
-                    }
-
+            Section("Claude Code") {
                 HStack {
-                    Text("포트")
+                    Text("claude 경로")
                     Spacer()
-                    TextField("18080", text: $apiPort)
-                        .frame(width: 80)
-                        .textFieldStyle(.roundedBorder)
-                        .multilineTextAlignment(.trailing)
-                        .onSubmit {
-                            if let port = Int(apiPort), (1024...65535).contains(port) {
-                                UserDefaults.standard.set(port, forKey: Constants.UserDefaultsKey.apiPort)
-                            }
-                        }
+                    Text(claudePath ?? "감지 안됨")
+                        .font(.caption)
+                        .foregroundStyle(claudePath != nil ? Color.secondary : Color.red)
+                }
+
+                if claudePath == nil {
+                    Text("npm install -g @anthropic-ai/claude-code")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.orange)
                 }
 
                 HStack {
-                    Text("상태")
+                    Text("연결 상태")
                     Spacer()
                     Circle()
-                        .fill(apiEnabled ? Color.green : Color.gray)
+                        .fill(connectionStatus.color)
                         .frame(width: 8, height: 8)
-                    Text(apiEnabled ? "실행 중 (localhost:\(apiPort))" : "중지됨")
-                        .foregroundStyle(.secondary)
+                    Text(connectionStatus.label)
                         .font(.caption)
-                }
-            }
-
-            Section("Claude API 설정") {
-                HStack {
-                    Text("API Key")
-                    Spacer()
-                    SecureField("sk-ant-...", text: $claudeAPIKey)
-                        .frame(width: 200)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit { saveClaudeAPIKey() }
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
 
-                HStack {
-                    Text("Base URL")
-                    Spacer()
-                    TextField("https://api.anthropic.com", text: $claudeAPIBase)
-                        .frame(width: 200)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit {
-                            UserDefaults.standard.set(claudeAPIBase, forKey: Constants.UserDefaultsKey.claudeAPIBase)
-                        }
-                }
-                .help("기본값: https://api.anthropic.com (비워두면 기본값 사용)")
-
-                HStack {
-                    Text("모델")
-                    Spacer()
-                    Picker("", selection: $claudeModel) {
-                        ForEach(availableModels, id: \.self) { model in
-                            Text(model).tag(model)
+                Button {
+                    checkConnection()
+                } label: {
+                    HStack {
+                        if isCheckingConnection {
+                            ProgressView().controlSize(.small)
+                            Text("연결 확인 중...")
+                        } else {
+                            Image(systemName: "network")
+                            Text("연결 확인")
                         }
                     }
-                    .frame(width: 200)
-                    .onChange(of: claudeModel) { _, newValue in
-                        UserDefaults.standard.set(newValue, forKey: Constants.UserDefaultsKey.claudeModel)
-                    }
-                }
-
-                Button("API Key 저장") {
-                    saveClaudeAPIKey()
                 }
                 .controlSize(.small)
-                .disabled(claudeAPIKey.isEmpty)
+                .disabled(isCheckingConnection || claudePath == nil)
             }
 
-            Section("Claude Code 연결") {
-                HStack {
-                    Text("MCP 서버")
-                    Spacer()
-                    Text(connectionStatus)
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("설정 방법")
-                        .font(.caption.bold())
-                    Text("프로젝트 루트에 .mcp.json 추가:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text("""
-                    {
-                      "mcpServers": {
-                        "battery-agent": {
-                          "command": "node",
-                          "args": ["mcp-server/index.js"]
-                        }
-                      }
-                    }
-                    """)
-                    .font(.system(size: 10, design: .monospaced))
-                    .padding(8)
-                    .background(Color.black.opacity(0.2), in: RoundedRectangle(cornerRadius: 6))
-
-                    Button("설정 복사") {
-                        let config = """
-                        {"mcpServers":{"battery-agent":{"command":"node","args":["mcp-server/index.js"]}}}
-                        """
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(config, forType: .string)
-                    }
-                    .controlSize(.small)
-                }
-            }
-
-            Section("AI 배터리 분석") {
+            Section("AI 자동 설정") {
                 Button {
-                    requestAIAnalysis()
+                    requestAnalysis()
                 } label: {
                     HStack {
                         if isAnalyzing {
                             ProgressView()
                                 .controlSize(.small)
-                            Text("분석 중...")
+                            Text("Claude 분석 중...")
                         } else {
                             Image(systemName: "brain")
-                            Text("배터리 분석 요청")
+                            Text("AI 자동 설정")
                         }
                     }
                     .frame(maxWidth: .infinity)
                 }
                 .controlSize(.large)
-                .disabled(isAnalyzing || claudeAPIKey.isEmpty)
-                .help(claudeAPIKey.isEmpty ? "Claude API Key를 먼저 입력하세요" : "AI로 배터리 상태를 분석합니다")
+                .disabled(isAnalyzing || claudePath == nil || !isConnected)
 
-                if !analysisResult.isEmpty {
+                if !report.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
+                        Text("분석 결과")
+                            .font(.caption.bold())
                         ScrollView {
-                            Text(analysisResult)
+                            Text(report)
                                 .font(.caption)
                                 .foregroundStyle(.primary)
                                 .textSelection(.enabled)
@@ -180,267 +117,282 @@ struct AITab: View {
                         .background(Color.black.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
 
                         HStack {
+                            if let applied = appliedSettings {
+                                Text("충전 제한 \(applied.chargeLimit)% 적용됨")
+                                    .font(.caption)
+                                    .foregroundStyle(.green)
+                            }
+                            Spacer()
                             Button {
-                                copyAnalysisResult()
+                                copyReport()
                             } label: {
-                                Label(isCopied ? "복사됨" : "결과 복사", systemImage: isCopied ? "checkmark" : "doc.on.doc")
+                                Label(isCopied ? "복사됨" : "복사", systemImage: isCopied ? "checkmark" : "doc.on.doc")
                             }
                             .controlSize(.small)
-
-                            Spacer()
-
-                            if showApplyRecommendation, let limit = recommendedChargeLimit {
-                                Button {
-                                    applyRecommendedLimit(limit)
-                                } label: {
-                                    Label("충전 제한 \(limit)% 적용", systemImage: "checkmark.circle")
-                                        .foregroundStyle(.green)
-                                }
-                                .controlSize(.small)
-                            }
                         }
                     }
                 }
             }
+
         }
         .formStyle(.grouped)
         .padding()
-        .onAppear { checkConnection() }
+        .onAppear {
+            claudePath = findClaudePath()
+            if claudePath != nil { checkConnection() }
+        }
     }
 
-    // MARK: - Private
+    // MARK: - 연결 확인
 
-    private func saveClaudeAPIKey() {
-        KeychainHelper.save(key: Constants.UserDefaultsKey.claudeAPIKey, value: claudeAPIKey)
+    private var isConnected: Bool {
+        if case .connected = connectionStatus { return true }
+        return false
     }
 
-    private func copyAnalysisResult() {
+    private func checkConnection() {
+        guard let path = claudePath else { return }
+        isCheckingConnection = true
+        connectionStatus = .checking
+
+        DispatchQueue.global(qos: .utility).async {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: path)
+            // --print -p 패턴으로 실제 API 인증 확인 (동작 확인된 패턴)
+            process.arguments = ["--print", "-p", "Say 'OK' if you can hear me.", "--model", "claude-sonnet-4-6"]
+
+            let outPipe = Pipe()
+            let errPipe = Pipe()
+            process.standardOutput = outPipe
+            process.standardError = errPipe
+
+            do {
+                try process.run()
+
+                // 30초 타임아웃
+                var timedOut = false
+                let timer = DispatchWorkItem {
+                    if process.isRunning {
+                        process.terminate()
+                        timedOut = true
+                    }
+                }
+                DispatchQueue.global().asyncAfter(deadline: .now() + 30, execute: timer)
+                process.waitUntilExit()
+                timer.cancel()
+
+                let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
+                let _ = (String(data: outData, encoding: .utf8) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+
+                DispatchQueue.main.async {
+                    isCheckingConnection = false
+                    if timedOut {
+                        connectionStatus = .disconnected("타임아웃 (30초)")
+                    } else if process.terminationStatus == 0 {
+                        connectionStatus = .connected("claude-sonnet-4-6")
+                    } else {
+                        let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                        let errMsg = (String(data: errData, encoding: .utf8) ?? "")
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        // 주요 오류 메시지 파싱 (참고: Rust/Tauri 동작 코드 기준)
+                        let combined = errMsg.lowercased()
+                        let reason: String
+                        if combined.contains("authentication") || combined.contains("auth") || combined.contains("not logged in") || combined.contains("login") {
+                            reason = "로그인 필요 — 터미널에서 'claude' 실행 후 로그인"
+                        } else if combined.contains("subscription") || combined.contains("pro") || combined.contains("max") {
+                            reason = "Claude Pro/Max 구독 필요"
+                        } else if combined.contains("api key") || combined.contains("api_key") {
+                            reason = "API 키 오류"
+                        } else if combined.contains("network") || combined.contains("connect") || combined.contains("timeout") {
+                            reason = "네트워크 오류"
+                        } else if errMsg.isEmpty {
+                            reason = "알 수 없는 오류"
+                        } else {
+                            reason = String(errMsg.prefix(80))
+                        }
+                        connectionStatus = .disconnected(reason)
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    isCheckingConnection = false
+                    connectionStatus = .disconnected(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    // MARK: - Claude 경로 감지
+
+    private func findClaudePath() -> String? {
+        let home = ProcessInfo.processInfo.environment["HOME"] ?? ""
+        let candidates = [
+            home + "/.local/bin/claude",
+            "/opt/homebrew/bin/claude",
+            "/usr/local/bin/claude",
+            home + "/.claude/bin/claude",
+            "/usr/bin/claude"
+        ]
+        // PATH에서도 탐색
+        if let pathEnv = ProcessInfo.processInfo.environment["PATH"] {
+            for dir in pathEnv.split(separator: ":") {
+                let full = "\(dir)/claude"
+                if FileManager.default.isExecutableFile(atPath: full) { return full }
+            }
+        }
+        return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
+    }
+
+    // MARK: - Process 실행
+
+    private func runClaude(prompt: String, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let path = claudePath else {
+            completion(.failure(NSError(
+                domain: "",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "claude 명령어를 찾을 수 없습니다.\n설치: npm install -g @anthropic-ai/claude-code"]
+            )))
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: path)
+            process.arguments = ["--print", "-p", prompt, "--model", "claude-sonnet-4-6"]
+
+            let outPipe = Pipe()
+            let errPipe = Pipe()
+            process.standardOutput = outPipe
+            process.standardError = errPipe
+
+            do {
+                try process.run()
+                process.waitUntilExit()
+
+                let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
+                let output = String(data: outData, encoding: .utf8) ?? ""
+
+                if process.terminationStatus == 0 {
+                    completion(.success(output))
+                } else {
+                    let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                    let errMsg = String(data: errData, encoding: .utf8) ?? "알 수 없는 오류"
+                    completion(.failure(NSError(
+                        domain: "",
+                        code: Int(process.terminationStatus),
+                        userInfo: [NSLocalizedDescriptionKey: errMsg]
+                    )))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    // MARK: - 프롬프트 구성
+
+    private func buildPrompt() -> String {
+        let s = viewModel.batteryState
+        return """
+        다음 맥북 배터리 상태를 분석하고 최적 충전 설정을 추천해주세요.
+
+        ## 배터리 현재 상태
+        {
+          "currentCharge": \(s.currentCharge),
+          "isCharging": \(s.isCharging),
+          "isPluggedIn": \(s.isPluggedIn),
+          "healthPercentage": \(s.healthPercentage),
+          "cycleCount": \(s.cycleCount),
+          "designCapacity": \(s.designCapacity),
+          "maxCapacity": \(s.maxCapacity),
+          "temperature": \(String(format: "%.1f", s.temperature)),
+          "voltage": \(String(format: "%.3f", s.voltage)),
+          "adapterWatts": \(s.adapterWatts)
+        }
+
+        ## 현재 설정
+        {
+          "chargeLimit": \(viewModel.chargeLimit),
+          "dischargeFloor": \(viewModel.dischargeFloor),
+          "isManaging": \(viewModel.isManaging),
+          "rechargeMode": "\(viewModel.rechargeMode == .smart ? "smart" : "manual")"
+        }
+
+        반드시 아래 JSON 형식으로만 응답하세요 (설명 없이 JSON만):
+        {
+          "chargeLimit": 80,
+          "dischargeFloor": 20,
+          "isManaging": true,
+          "rechargeMode": "smart",
+          "report": "분석 내용과 추천 이유를 한국어로 작성"
+        }
+        """
+    }
+
+    // MARK: - JSON 추출
+
+    private func extractJSON(from text: String) -> [String: Any]? {
+        let patterns = ["```json\\s*([\\s\\S]*?)```", "```\\s*([\\s\\S]*?)```", "(\\{[\\s\\S]*\\})"]
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern),
+               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+               let range = Range(match.range(at: 1), in: text) {
+                let jsonStr = String(text[range])
+                if let data = jsonStr.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    return json
+                }
+            }
+        }
+        return nil
+    }
+
+    // MARK: - 설정 적용
+
+    private func applySettings(from json: [String: Any]) {
+        if let v = json["chargeLimit"] as? Int, (20...100).contains(v) { viewModel.chargeLimit = v }
+        if let v = json["dischargeFloor"] as? Int, (5...50).contains(v) { viewModel.dischargeFloor = v }
+        if let v = json["isManaging"] as? Bool { viewModel.isManaging = v }
+        if let v = json["rechargeMode"] as? String { viewModel.rechargeMode = v == "manual" ? .manual : .smart }
+    }
+
+    // MARK: - 분석 요청
+
+    private func requestAnalysis() {
+        isAnalyzing = true
+        report = ""
+        appliedSettings = nil
+
+        let prompt = buildPrompt()
+
+        runClaude(prompt: prompt) { result in
+            DispatchQueue.main.async {
+                isAnalyzing = false
+                switch result {
+                case .success(let output):
+                    if let json = extractJSON(from: output) {
+                        applySettings(from: json)
+                        report = (json["report"] as? String) ?? output
+                        appliedSettings = AppliedSettings(chargeLimit: viewModel.chargeLimit)
+                    } else {
+                        report = output
+                    }
+                case .failure(let error):
+                    report = "오류: \(error.localizedDescription)"
+                }
+            }
+        }
+    }
+
+    // MARK: - 결과 복사
+
+    private func copyReport() {
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(analysisResult, forType: .string)
+        NSPasteboard.general.setString(report, forType: .string)
         isCopied = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             isCopied = false
         }
     }
-
-    private func applyRecommendedLimit(_ limit: Int) {
-        viewModel.chargeLimit = limit
-        showApplyRecommendation = false
-    }
-
-    private func checkConnection() {
-        guard apiEnabled else {
-            connectionStatus = "API 서버 비활성화"
-            return
-        }
-        let mcpPath = Bundle.main.bundlePath
-            .components(separatedBy: "/").dropLast(3).joined(separator: "/")
-            + "/mcp-server/node_modules"
-        if FileManager.default.fileExists(atPath: mcpPath) {
-            connectionStatus = "준비됨"
-        } else {
-            connectionStatus = "npm install 필요 (mcp-server/)"
-        }
-    }
-
-    private func requestAIAnalysis() {
-        guard !claudeAPIKey.isEmpty else { return }
-        isAnalyzing = true
-        analysisResult = ""
-        recommendedChargeLimit = nil
-        showApplyRecommendation = false
-
-        let port = apiPort
-        let apiKey = claudeAPIKey
-        let model = claudeModel.isEmpty ? "claude-opus-4-5" : claudeModel
-        let baseURL = claudeAPIBase.isEmpty ? "https://api.anthropic.com" : claudeAPIBase
-
-        DispatchQueue.global().async {
-            // 로컬 API에서 데이터 수집
-            let statusData = apiEnabled ? httpGet("http://localhost:\(port)/api/status") : nil
-            let healthData = apiEnabled ? httpGet("http://localhost:\(port)/api/health") : nil
-
-            // 배터리 데이터 구성
-            let batteryInfo: String
-            if let status = statusData, let health = healthData {
-                let statusJSON = (try? JSONSerialization.data(withJSONObject: status, options: [.prettyPrinted])).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-                let healthJSON = (try? JSONSerialization.data(withJSONObject: health, options: [.prettyPrinted])).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-                batteryInfo = "## 현재 배터리 상태\n```json\n\(statusJSON)\n```\n\n## 배터리 건강도\n```json\n\(healthJSON)\n```"
-            } else {
-                // API 서버 없이 viewModel 데이터 사용
-                DispatchQueue.main.async {
-                    let s = viewModel.batteryState
-                    let loss = max(0, s.designCapacity - s.maxCapacity)
-                    let info = """
-                    현재 충전량: \(s.currentCharge)%
-                    충전 중: \(s.isCharging)
-                    건강도: \(s.healthPercentage)%
-                    사이클: \(s.cycleCount)회
-                    설계 용량: \(s.designCapacity) mAh
-                    현재 최대: \(s.maxCapacity) mAh
-                    용량 손실: \(loss) mAh
-                    온도: \(String(format: "%.1f", s.temperature))°C
-                    충전 제한: \(viewModel.chargeLimit)%
-                    관리 활성화: \(viewModel.isManaging)
-                    """
-                    sendToClaudeAPI(batteryInfo: info, apiKey: apiKey, model: model, baseURL: baseURL)
-                }
-                return
-            }
-
-            sendToClaudeAPI(batteryInfo: batteryInfo, apiKey: apiKey, model: model, baseURL: baseURL)
-        }
-    }
-
-    private func sendToClaudeAPI(batteryInfo: String, apiKey: String, model: String, baseURL: String) {
-        let prompt = """
-        다음은 내 맥북 배터리 상태입니다. 배터리 건강도를 분석하고 최적 충전 설정을 추천해주세요.
-
-        \(batteryInfo)
-
-        다음 사항을 포함해 분석해주세요:
-        1. 현재 배터리 건강도 평가
-        2. 사용 패턴 분석 (가능한 경우)
-        3. 권장 충전 제한값 (숫자만: "권장 충전 제한: XX%" 형식으로 반드시 포함)
-        4. 배터리 수명 연장 팁
-        """
-
-        guard let url = URL(string: "\(baseURL)/v1/messages") else {
-            DispatchQueue.main.async {
-                analysisResult = "잘못된 API URL입니다."
-                isAnalyzing = false
-            }
-            return
-        }
-
-        let body: [String: Any] = [
-            "model": model,
-            "max_tokens": 1024,
-            "messages": [
-                ["role": "user", "content": prompt]
-            ]
-        ]
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        request.timeoutInterval = 30
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isAnalyzing = false
-
-                if let error = error {
-                    analysisResult = "오류: \(error.localizedDescription)"
-                    return
-                }
-
-                guard let data = data,
-                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                    analysisResult = "응답 파싱 실패"
-                    return
-                }
-
-                if let errorMsg = json["error"] as? [String: Any],
-                   let msg = errorMsg["message"] as? String {
-                    analysisResult = "API 오류: \(msg)"
-                    return
-                }
-
-                if let content = json["content"] as? [[String: Any]],
-                   let firstBlock = content.first,
-                   let text = firstBlock["text"] as? String {
-                    analysisResult = text
-                    parseRecommendedLimit(from: text)
-                } else {
-                    analysisResult = "응답에서 텍스트를 찾을 수 없습니다."
-                }
-            }
-        }.resume()
-    }
-
-    private func parseRecommendedLimit(from text: String) {
-        // "권장 충전 제한: 80%" 같은 패턴 파싱
-        let patterns = [
-            "권장 충전 제한: (\\d+)%",
-            "충전 제한.*?(\\d+)%",
-            "recommended.*?(\\d+)%"
-        ]
-        for pattern in patterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
-               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-               let range = Range(match.range(at: 1), in: text),
-               let limit = Int(text[range]),
-               (20...100).contains(limit) {
-                recommendedChargeLimit = limit
-                showApplyRecommendation = (limit != viewModel.chargeLimit)
-                return
-            }
-        }
-    }
 }
 
-// MARK: - HTTP Helpers
-
-private func httpGet(_ urlString: String) -> [String: Any]? {
-    guard let url = URL(string: urlString) else { return nil }
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpBody = try? JSONSerialization.data(withJSONObject: [:])
-    request.timeoutInterval = 3
-
-    var result: [String: Any]?
-    let sem = DispatchSemaphore(value: 0)
-    URLSession.shared.dataTask(with: request) { data, _, _ in
-        if let data {
-            result = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        }
-        sem.signal()
-    }.resume()
-    sem.wait()
-    return result
-}
-
-private extension Int {
-    func nonZeroOr(_ fallback: Int) -> Int {
-        self != 0 ? self : fallback
-    }
-}
-
-// MARK: - Keychain Helper
-
-enum KeychainHelper {
-    static func save(key: String, value: String) {
-        let data = Data(value.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecAttrService as String: Constants.appBundleIdentifier
-        ]
-        SecItemDelete(query as CFDictionary)
-        if !value.isEmpty {
-            var attrs = query
-            attrs[kSecValueData as String] = data
-            SecItemAdd(attrs as CFDictionary, nil)
-        }
-    }
-
-    static func load(key: String) -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecAttrService as String: Constants.appBundleIdentifier,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var item: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
-              let data = item as? Data,
-              let str = String(data: data, encoding: .utf8) else { return nil }
-        return str
-    }
-}
