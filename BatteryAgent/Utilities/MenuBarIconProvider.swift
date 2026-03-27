@@ -11,7 +11,7 @@ enum MenuBarIconProvider {
     static func iconName(for level: Int, state: BatteryDisplayState) -> String {
         switch state {
         case .charging:
-            return baseIcon(for: level) + ".bolt"
+            return "battery.100percent.bolt"
         case .forceDischarging:
             return "arrow.down.circle"
         case .pluggedIn:

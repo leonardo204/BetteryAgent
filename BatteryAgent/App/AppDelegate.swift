@@ -34,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 systemSymbolName: "battery.75percent",
                 accessibilityDescription: "BatteryAgent"
             )
+            button.imagePosition = .imageLeading
             button.action = #selector(togglePopover)
             button.target = self
         }
