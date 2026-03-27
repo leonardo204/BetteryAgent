@@ -1,0 +1,53 @@
+name: BatteryAgent
+options:
+  bundleIdPrefix: com.zerolive
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+
+targets:
+  BatteryAgent:
+    type: application
+    platform: macOS
+    sources:
+      - path: BatteryAgent
+      - path: Shared
+    dependencies:
+      - target: BatteryAgentHelper
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zerolive.BatteryAgent
+        INFOPLIST_VALUES: |-
+          CFBundleDisplayName=BatteryAgent
+          CFBundleShortVersionString=1.0.0
+          CFBundleVersion=1
+          LSUIElement=true
+        PRODUCT_NAME: BatteryAgent
+        SWIFT_STRICT_CONCURRENCY: minimal
+    info:
+      path: BatteryAgent/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: BatteryAgent
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSUIElement: true
+
+  BatteryAgentHelper:
+    type: tool
+    platform: macOS
+    sources:
+      - path: BatteryAgentHelper
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zerolive.BatteryAgentHelper
+        PRODUCT_NAME: BatteryAgentHelper
+        SWIFT_STRICT_CONCURRENCY: minimal

@@ -1,0 +1,32 @@
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Node.js (MCP server)
+node_modules/
+npm-debug.log*
+
+# Claude Code runtime
+.claude/db/context.db
+.claude/.ctx_state
+.claude/.backup-*
+.claude/.ralph_state
+.claude/.hud_cache
+.claude/.hook_feedback
+.claude/.project_root
