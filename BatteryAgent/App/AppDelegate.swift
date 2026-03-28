@@ -162,7 +162,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let vm = viewModel else { return }
         let displayState: BatteryDisplayState
         if vm.isManaging && vm.batteryState.currentCharge > vm.chargeLimit {
-            displayState = .forceDischarging
+            displayState = .pluggedIn  // 충전 차단만, AC 모드 유지
         } else if vm.smartChargingStatus.isSmartCharging && vm.batteryState.isCharging {
             displayState = .smartCharging
         } else if vm.batteryState.isCharging {

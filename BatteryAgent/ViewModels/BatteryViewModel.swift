@@ -361,9 +361,10 @@ class BatteryViewModel {
         }
 
         if charge > effectiveLimit && pluggedIn {
-            logger.info("Charge \(charge)% > effectiveLimit \(effectiveLimit)%, disabling charging + force discharge")
+            // 충전 차단만 — 강제 방전 없이 AC 모드 유지, 자연 방전으로 제한치까지 하강
+            logger.info("Charge \(charge)% > effectiveLimit \(effectiveLimit)%, disabling charging (AC mode maintained)")
             smcClient.disableCharging { _ in }
-            smcClient.setForceDischarge(true) { _ in }
+            smcClient.setForceDischarge(false) { _ in }
 
             if notifyOnComplete && !hasNotifiedCompletion {
                 NotificationManager.shared.sendChargeCompleteNotification(limit: effectiveLimit)
@@ -374,13 +375,11 @@ class BatteryViewModel {
             smcClient.disableCharging { _ in }
             smcClient.setForceDischarge(false) { _ in }
         } else if charge < effectiveLimit && pluggedIn {
-            // effectiveLimit 미만: 충전 재활성화 + 방전 중지
             if charge < effectiveRechargeThreshold {
                 logger.info("Charge \(charge)% < \(self.effectiveRechargeThreshold)%, re-enabling charging")
                 smcClient.enableCharging { _ in }
                 hasNotifiedCompletion = false
             }
-            // effectiveLimit 미만이면 항상 방전 중지
             smcClient.setForceDischarge(false) { _ in }
         }
 

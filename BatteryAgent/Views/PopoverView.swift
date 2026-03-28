@@ -117,14 +117,14 @@ struct PopoverView: View {
 
     // MARK: - Status
 
-    private var isForceDischarging: Bool {
+    private var isOverLimit: Bool {
         viewModel.isManaging
         && viewModel.batteryState.currentCharge > viewModel.chargeLimit
     }
 
     private var statusIcon: String {
-        if isForceDischarging {
-            return "arrow.down.circle.fill"
+        if isOverLimit {
+            return "powerplug.fill"
         } else if viewModel.batteryState.isCharging {
             return "bolt.fill"
         } else if viewModel.batteryState.isPluggedIn || viewModel.batteryState.adapterWatts > 0 {
@@ -135,15 +135,15 @@ struct PopoverView: View {
     }
 
     private var statusColor: Color {
-        if isForceDischarging { return .orange }
+        if isOverLimit { return .orange }
         if viewModel.batteryState.isCharging { return .green }
         if viewModel.batteryState.isPluggedIn || viewModel.batteryState.adapterWatts > 0 { return .yellow }
         return .secondary
     }
 
     private var statusText: String {
-        if isForceDischarging {
-            return "방전 중 → \(viewModel.chargeLimit)%"
+        if isOverLimit {
+            return "충전 차단 중 → \(viewModel.chargeLimit)%까지 대기"
         }
         if viewModel.batteryState.isCharging { return "충전 중" }
         if viewModel.isManaging && viewModel.batteryState.currentCharge == viewModel.chargeLimit {
