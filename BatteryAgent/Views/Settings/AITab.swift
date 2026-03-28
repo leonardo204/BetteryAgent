@@ -27,6 +27,8 @@ struct AITab: View {
     @State private var claudePath: String? = nil
     @State private var connectionStatus: ConnectionStatus = .unknown
     @State private var isCheckingConnection = false
+    @State private var showErrorDetail = false
+    @State private var errorDetail = ""
 
     // 분석 상태
     @State private var isAnalyzing = false
@@ -42,15 +44,55 @@ struct AITab: View {
                 HStack {
                     Text("claude 경로")
                     Spacer()
-                    Text(claudePath ?? "감지 안됨")
-                        .font(.caption)
-                        .foregroundStyle(claudePath != nil ? Color.secondary : Color.red)
+                    if let path = claudePath {
+                        Text(path)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    } else {
+                        Text("감지 안됨")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
                 }
 
                 if claudePath == nil {
-                    Text("npm install -g @anthropic-ai/claude-code")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(.orange)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Claude Code가 설치되어 있지 않거나 경로를 찾을 수 없습니다.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text("npm install -g @anthropic-ai/claude-code")
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(.orange)
+                            .textSelection(.enabled)
+                    }
+                }
+
+                HStack {
+                    // 자동 감지 버튼
+                    Button {
+                        claudePath = findClaudePath()
+                        if claudePath != nil { checkConnection() }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "magnifyingglass")
+                            Text("자동 감지")
+                        }
+                    }
+                    .controlSize(.small)
+
+                    // 직접 찾기 버튼
+                    Button {
+                        browseForClaude()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "folder")
+                            Text("찾아보기")
+                        }
+                    }
+                    .controlSize(.small)
                 }
 
                 HStack {
@@ -63,6 +105,19 @@ struct AITab: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+
+                    // 에러 시 상세 보기 버튼
+                    if case .disconnected = connectionStatus {
+                        Button {
+                            showErrorDetail = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
+                        .buttonStyle(.borderless)
+                        .help("에러 상세 보기")
+                    }
                 }
 
                 Button {
@@ -138,8 +193,61 @@ struct AITab: View {
         .formStyle(.grouped)
         .padding()
         .onAppear {
-            if claudePath == nil { claudePath = findClaudePath() }
+            // 저장된 경로 먼저 확인
+            if let saved = UserDefaults.standard.string(forKey: "claudeCodePath"),
+               FileManager.default.isExecutableFile(atPath: saved) {
+                claudePath = saved
+            } else {
+                claudePath = findClaudePath()
+            }
             if claudePath != nil, case .unknown = connectionStatus { checkConnection() }
+        }
+        .alert("연결 오류 상세", isPresented: $showErrorDetail) {
+            Button("확인", role: .cancel) {}
+            Button("복사") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(errorDetail, forType: .string)
+            }
+        } message: {
+            Text(errorDetail)
+        }
+    }
+
+    // MARK: - 파일 찾기 (NSOpenPanel)
+
+    private func browseForClaude() {
+        let panel = NSOpenPanel()
+        panel.title = "Claude Code 실행 파일 선택"
+        panel.message = "claude 실행 파일을 선택하세요 (보통 ~/.local/bin/claude)"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.showsHiddenFiles = true
+        panel.treatsFilePackagesAsDirectories = true
+
+        // 기본 경로 설정
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        panel.directoryURL = home.appendingPathComponent(".local/bin")
+
+        if panel.runModal() == .OK, let url = panel.url {
+            let path = url.path
+            // 실행 가능한 파일인지 확인
+            if FileManager.default.isExecutableFile(atPath: path) {
+                claudePath = path
+                UserDefaults.standard.set(path, forKey: "claudeCodePath")
+                checkConnection()
+            } else {
+                errorDetail = """
+                선택한 파일을 실행할 수 없습니다.
+
+                경로: \(path)
+
+                확인 사항:
+                • 실행 권한이 있는지 확인 (chmod +x \(path))
+                • claude 바이너리가 맞는지 확인
+                """
+                showErrorDetail = true
+            }
         }
     }
 
@@ -156,9 +264,30 @@ struct AITab: View {
         connectionStatus = .checking
 
         DispatchQueue.global(qos: .utility).async {
+            // 1단계: 파일 존재 및 실행 가능 여부
+            guard FileManager.default.isExecutableFile(atPath: path) else {
+                DispatchQueue.main.async {
+                    isCheckingConnection = false
+                    let detail = """
+                    Claude Code 실행 파일을 찾을 수 없습니다.
+
+                    경로: \(path)
+
+                    해결 방법:
+                    1. 터미널에서 'which claude'로 경로 확인
+                    2. '찾아보기' 버튼으로 직접 선택
+                    3. Claude Code 미설치 시:
+                       npm install -g @anthropic-ai/claude-code
+                    """
+                    errorDetail = detail
+                    connectionStatus = .disconnected("실행 파일 없음")
+                }
+                return
+            }
+
+            // 2단계: 실행 테스트
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
-            // --print -p 패턴으로 실제 API 인증 확인 (동작 확인된 패턴)
             process.arguments = ["--print", "-p", "Reply with only your model name (e.g. claude-opus-4-6)."]
 
             let outPipe = Pipe()
@@ -169,7 +298,6 @@ struct AITab: View {
             do {
                 try process.run()
 
-                // 30초 타임아웃
                 var timedOut = false
                 let timer = DispatchWorkItem {
                     if process.isRunning {
@@ -183,45 +311,211 @@ struct AITab: View {
 
                 let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
                 let output = (String(data: outData, encoding: .utf8) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                let errMsg = (String(data: errData, encoding: .utf8) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 
                 DispatchQueue.main.async {
                     isCheckingConnection = false
+
                     if timedOut {
+                        errorDetail = """
+                        연결 시간 초과 (30초)
+
+                        가능한 원인:
+                        • 네트워크 연결 불안정
+                        • Anthropic API 서버 응답 지연
+                        • 방화벽/프록시가 API 요청을 차단
+
+                        해결 방법:
+                        1. 인터넷 연결 확인
+                        2. 터미널에서 'claude --version' 실행
+                        3. VPN/프록시 사용 시 해제 후 재시도
+                        """
                         connectionStatus = .disconnected("타임아웃 (30초)")
-                    } else if process.terminationStatus == 0 {
-                        // 응답에서 모델명 추출
+                        return
+                    }
+
+                    if process.terminationStatus == 0 {
                         let modelName = output.isEmpty ? "claude" : output.components(separatedBy: .newlines).last ?? "claude"
                         connectionStatus = .connected(modelName)
-                    } else {
-                        let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-                        let errMsg = (String(data: errData, encoding: .utf8) ?? "")
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                        // 주요 오류 메시지 파싱 (참고: Rust/Tauri 동작 코드 기준)
-                        let combined = errMsg.lowercased()
-                        let reason: String
-                        if combined.contains("authentication") || combined.contains("auth") || combined.contains("not logged in") || combined.contains("login") {
-                            reason = "로그인 필요 — 터미널에서 'claude' 실행 후 로그인"
-                        } else if combined.contains("subscription") || combined.contains("pro") || combined.contains("max") {
-                            reason = "Claude Pro/Max 구독 필요"
-                        } else if combined.contains("api key") || combined.contains("api_key") {
-                            reason = "API 키 오류"
-                        } else if combined.contains("network") || combined.contains("connect") || combined.contains("timeout") {
-                            reason = "네트워크 오류"
-                        } else if errMsg.isEmpty {
-                            reason = "알 수 없는 오류"
-                        } else {
-                            reason = String(errMsg.prefix(80))
-                        }
-                        connectionStatus = .disconnected(reason)
+                        // 성공한 경로 저장
+                        UserDefaults.standard.set(path, forKey: "claudeCodePath")
+                        return
                     }
+
+                    // 에러 분석
+                    let combined = errMsg.lowercased()
+                    let (reason, detail) = analyzeError(combined: combined, errMsg: errMsg, exitCode: process.terminationStatus)
+                    errorDetail = detail
+                    connectionStatus = .disconnected(reason)
                 }
             } catch {
                 DispatchQueue.main.async {
                     isCheckingConnection = false
-                    connectionStatus = .disconnected(error.localizedDescription)
+                    errorDetail = """
+                    프로세스 실행 실패
+
+                    경로: \(path)
+                    오류: \(error.localizedDescription)
+
+                    해결 방법:
+                    1. 터미널에서 '\(path) --version' 실행 가능한지 확인
+                    2. '찾아보기' 버튼으로 올바른 경로 선택
+                    3. 실행 권한 확인: chmod +x \(path)
+                    """
+                    connectionStatus = .disconnected("실행 실패")
                 }
             }
         }
+    }
+
+    // MARK: - 에러 분석
+
+    private func analyzeError(combined: String, errMsg: String, exitCode: Int32) -> (reason: String, detail: String) {
+        if combined.contains("authentication") || combined.contains("auth")
+            || combined.contains("not logged in") || combined.contains("login")
+            || combined.contains("unauthenticated") {
+            return (
+                "로그인 필요",
+                """
+                Claude Code에 로그인되어 있지 않습니다.
+
+                해결 방법:
+                1. 터미널을 열고 'claude' 입력
+                2. 안내에 따라 로그인 (Anthropic 계정 또는 API 키)
+                3. 로그인 완료 후 여기서 '연결 확인' 재시도
+
+                원본 에러:
+                \(errMsg)
+                """
+            )
+        }
+
+        if combined.contains("subscription") || combined.contains("pro")
+            || combined.contains("max") || combined.contains("plan") {
+            return (
+                "구독 필요",
+                """
+                Claude Pro 또는 Max 구독이 필요합니다.
+
+                Claude Code는 유료 구독(Pro/Max) 또는 API 키가 필요합니다.
+
+                해결 방법:
+                1. claude.ai에서 Pro/Max 구독
+                2. 또는 API 키 사용: console.anthropic.com에서 발급
+
+                원본 에러:
+                \(errMsg)
+                """
+            )
+        }
+
+        if combined.contains("api key") || combined.contains("api_key")
+            || combined.contains("invalid key") || combined.contains("invalid_api_key") {
+            return (
+                "API 키 오류",
+                """
+                API 키가 유효하지 않습니다.
+
+                해결 방법:
+                1. console.anthropic.com에서 API 키 확인
+                2. 터미널에서 'claude' 실행 후 API 키 재설정
+                3. 환경 변수 ANTHROPIC_API_KEY 확인
+
+                원본 에러:
+                \(errMsg)
+                """
+            )
+        }
+
+        if combined.contains("network") || combined.contains("connect")
+            || combined.contains("timeout") || combined.contains("econnrefused")
+            || combined.contains("dns") || combined.contains("fetch") {
+            return (
+                "네트워크 오류",
+                """
+                Anthropic API 서버에 연결할 수 없습니다.
+
+                해결 방법:
+                1. 인터넷 연결 확인
+                2. VPN/프록시 사용 시 해제 후 재시도
+                3. 방화벽에서 api.anthropic.com 허용
+                4. 터미널에서 'curl https://api.anthropic.com' 테스트
+
+                원본 에러:
+                \(errMsg)
+                """
+            )
+        }
+
+        if combined.contains("rate limit") || combined.contains("429")
+            || combined.contains("too many") {
+            return (
+                "요청 제한 초과",
+                """
+                API 요청 제한에 도달했습니다.
+
+                해결 방법:
+                1. 잠시 후 (1-2분) 재시도
+                2. 다른 작업에서 Claude Code 사용 중이라면 완료 후 재시도
+
+                원본 에러:
+                \(errMsg)
+                """
+            )
+        }
+
+        if combined.contains("permission") || combined.contains("eacces") {
+            return (
+                "권한 오류",
+                """
+                Claude Code 실행 권한이 없습니다.
+
+                해결 방법:
+                터미널에서 실행:
+                chmod +x \(claudePath ?? "claude")
+
+                원본 에러:
+                \(errMsg)
+                """
+            )
+        }
+
+        if combined.contains("not found") || combined.contains("enoent")
+            || combined.contains("no such file") {
+            return (
+                "모듈 누락",
+                """
+                Claude Code의 일부 모듈을 찾을 수 없습니다.
+
+                해결 방법:
+                1. Claude Code 재설치:
+                   npm uninstall -g @anthropic-ai/claude-code
+                   npm install -g @anthropic-ai/claude-code
+                2. Node.js 버전 확인: node --version (18+ 필요)
+
+                원본 에러:
+                \(errMsg)
+                """
+            )
+        }
+
+        // 알 수 없는 에러
+        return (
+            errMsg.isEmpty ? "알 수 없는 오류 (종료 코드: \(exitCode))" : String(errMsg.prefix(60)),
+            """
+            예기치 않은 오류가 발생했습니다.
+
+            종료 코드: \(exitCode)
+
+            해결 방법:
+            1. 터미널에서 'claude --version' 실행
+            2. 'claude --print -p "hello"' 직접 테스트
+            3. Claude Code 재설치: npm install -g @anthropic-ai/claude-code
+
+            \(errMsg.isEmpty ? "에러 메시지 없음" : "원본 에러:\n\(errMsg)")
+            """
+        )
     }
 
     // MARK: - Claude 경로 감지
@@ -397,4 +691,3 @@ struct AITab: View {
         }
     }
 }
-
