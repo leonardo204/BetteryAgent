@@ -3,8 +3,40 @@ import SwiftUI
 struct ChargeControlTab: View {
     @Bindable var viewModel: BatteryViewModel
 
+    @State private var daemonInstalled = SMCClient.shared.isDaemonRunning
+    @State private var installingDaemon = false
+
     var body: some View {
         Form {
+            if !daemonInstalled {
+                Section {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                        VStack(alignment: .leading) {
+                            Text("충전 제어 헬퍼가 설치되지 않았습니다")
+                                .font(.caption.bold())
+                            Text("충전 제어를 위해 헬퍼 설치가 필요합니다")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button("설치") {
+                            installingDaemon = true
+                            SMCClient.shared.installDaemon { success in
+                                DispatchQueue.main.async {
+                                    installingDaemon = false
+                                    daemonInstalled = success
+                                }
+                            }
+                        }
+                        .disabled(installingDaemon)
+                    }
+                    .padding(8)
+                    .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+
             Section("충전 제한") {
                 HStack {
                     Text("충전 제한")

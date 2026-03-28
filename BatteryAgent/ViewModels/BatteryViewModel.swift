@@ -1,6 +1,7 @@
 import Foundation
 import os.log
 import Observation
+import EventKit
 
 @MainActor
 @Observable
@@ -75,30 +76,71 @@ class BatteryViewModel {
         calibrationManager.state
     }
 
+    // MARK: - Smart Charging
+
+    var smartChargingStatus: SmartChargingStatus = .disabled
+    var chargeRules: [ChargeRule] = []
+
+    // MARK: - Calendar
+
+    let calendarMonitor = CalendarMonitor()
+
     // MARK: - Private
 
     private let batteryMonitor = BatteryMonitor()
     private let smcClient = SMCClient.shared
     private let historyStore = ChargeHistoryStore.shared
     private let calibrationManager = CalibrationManager()
+    private let patternTracker = UsagePatternTracker()
+    private let smartScheduler = SmartChargeScheduler()
     private var pollingTimer: Timer?
     private var historyTimer: Timer?
+    private var patternTimer: Timer?
     private var hasNotifiedCompletion = false
     private let logger = Logger(
         subsystem: Constants.appBundleIdentifier,
         category: "BatteryViewModel"
     )
 
+    private var isSmartChargingEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.smartChargingEnabled) }
+        set { UserDefaults.standard.set(newValue, forKey: Constants.UserDefaultsKey.smartChargingEnabled) }
+    }
+
+    private var isCalendarIntegrationEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: Constants.UserDefaultsKey.calendarIntegrationEnabled) }
+        set { UserDefaults.standard.set(newValue, forKey: Constants.UserDefaultsKey.calendarIntegrationEnabled) }
+    }
+
     // MARK: - Init
 
     init() {
         loadSettings()
+        loadChargeRules()
         updateBatteryState()
         startPolling()
         startHistoryRecording()
+        startPatternObservation()
+        startPowerSourceMonitoring()
+        checkAndInstallDaemon()
 
         Task {
             await NotificationManager.shared.requestAuthorization()
+        }
+    }
+
+    private func checkAndInstallDaemon() {
+        if !SMCClient.shared.isDaemonRunning {
+            logger.info("Daemon not running, attempting install...")
+            SMCClient.shared.installDaemon { [weak self] success in
+                DispatchQueue.main.async {
+                    if success {
+                        self?.logger.info("Daemon installed successfully")
+                    } else {
+                        self?.logger.error("Daemon install failed")
+                    }
+                }
+            }
         }
     }
 
@@ -210,6 +252,30 @@ class BatteryViewModel {
         pollingTimer = nil
         historyTimer?.invalidate()
         historyTimer = nil
+        patternTimer?.invalidate()
+        patternTimer = nil
+        batteryMonitor.stopPowerSourceMonitoring()
+    }
+
+    private func startPowerSourceMonitoring() {
+        batteryMonitor.startPowerSourceMonitoring { [weak self] in
+            Task { @MainActor in
+                self?.updateBatteryState()
+                NotificationCenter.default.post(name: .statusBarNeedsUpdate, object: nil)
+            }
+        }
+    }
+
+    private func startPatternObservation() {
+        patternTimer = Timer.scheduledTimer(
+            withTimeInterval: Constants.patternObservationInterval,
+            repeats: true
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.patternTracker.recordObservation(isPluggedIn: self.batteryState.isPluggedIn)
+            }
+        }
     }
 
     private func startHistoryRecording() {
@@ -247,23 +313,67 @@ class BatteryViewModel {
         let charge = batteryState.currentCharge
         let pluggedIn = batteryState.isPluggedIn
 
-        if charge > chargeLimit && pluggedIn {
-            // Over limit: disable charging AND force discharge to bring level down
-            logger.info("Charge \(charge)% > limit \(self.chargeLimit)%, disabling charging + force discharge")
+        // Determine effective limit via smart charging
+        let effectiveLimit: Int
+        if isSmartChargingEnabled {
+            let learnedPatterns = historyStore.loadDetectedPatterns()
+            let leadMinutes = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKey.defaultLeadMinutes)
+            let effectiveLead = leadMinutes > 0 ? leadMinutes : Constants.defaultSmartLeadMinutes
+            let calendarEventDate: Date? = isCalendarIntegrationEnabled
+                ? calendarMonitor.shouldPreCharge(leadMinutes: effectiveLead)
+                : nil
+            let decision = smartScheduler.evaluate(
+                currentCharge: charge,
+                isPluggedIn: pluggedIn,
+                normalChargeLimit: chargeLimit,
+                manualRules: chargeRules,
+                learnedPatterns: learnedPatterns,
+                calendarEventDate: calendarEventDate
+            )
+            switch decision {
+            case .useNormalLimit:
+                effectiveLimit = chargeLimit
+            case .overrideLimit(let limit):
+                effectiveLimit = limit
+            }
+        } else {
+            effectiveLimit = chargeLimit
+        }
+
+        let wasSmartCharging = smartChargingStatus.isSmartCharging
+        syncSmartChargingStatus()
+        if !wasSmartCharging && smartChargingStatus.isSmartCharging {
+            NotificationManager.shared.sendSmartChargingStartNotification(
+                reason: smartChargingStatus.smartChargingReason
+            )
+        }
+        if wasSmartCharging && !smartChargingStatus.isSmartCharging && batteryState.currentCharge >= 99 {
+            NotificationManager.shared.sendSmartChargingCompleteNotification()
+        }
+
+        // If smart charging is active and we're below the effective limit, ensure charging is enabled
+        if effectiveLimit == 100 && batteryState.currentCharge < 100 && batteryState.isPluggedIn {
+            // We need to charge up to 100%, so make sure charging is enabled
+            if !batteryState.isCharging {
+                smcClient.enableCharging { _ in }
+            }
+            return  // Skip normal charge limit logic during smart charging
+        }
+
+        if charge > effectiveLimit && pluggedIn {
+            logger.info("Charge \(charge)% > effectiveLimit \(effectiveLimit)%, disabling charging + force discharge")
             smcClient.disableCharging { _ in }
             smcClient.setForceDischarge(true) { _ in }
 
             if notifyOnComplete && !hasNotifiedCompletion {
-                NotificationManager.shared.sendChargeCompleteNotification(limit: chargeLimit)
+                NotificationManager.shared.sendChargeCompleteNotification(limit: effectiveLimit)
                 hasNotifiedCompletion = true
             }
-        } else if charge == chargeLimit && pluggedIn {
-            // At limit: disable charging, stop force discharge (hold at limit)
-            logger.info("Charge \(charge)% == limit \(self.chargeLimit)%, holding")
+        } else if charge == effectiveLimit && pluggedIn {
+            logger.info("Charge \(charge)% == effectiveLimit \(effectiveLimit)%, holding")
             smcClient.disableCharging { _ in }
             smcClient.setForceDischarge(false) { _ in }
         } else if charge < effectiveRechargeThreshold && pluggedIn {
-            // Below recharge threshold: enable charging, stop force discharge
             logger.info("Charge \(charge)% < \(self.effectiveRechargeThreshold)%, re-enabling charging")
             smcClient.enableCharging { _ in }
             smcClient.setForceDischarge(false) { _ in }
@@ -276,5 +386,108 @@ class BatteryViewModel {
             smcClient.setForceDischarge(false) { _ in }
             smcClient.enableCharging { _ in }
         }
+    }
+
+    // MARK: - Smart Charging Methods
+
+    func syncSmartChargingStatus() {
+        let learningDays = patternTracker.learningDays
+        let learnedPatterns = historyStore.loadDetectedPatterns()
+        let progress = min(1.0, Double(learningDays) / Double(Constants.learningPeriodDays))
+
+        // Determine next calendar event if integration is enabled
+        let nextCalendarEvent: Date?
+        if isCalendarIntegrationEnabled {
+            let leadMinutes = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKey.defaultLeadMinutes)
+            let effectiveLead = leadMinutes > 0 ? leadMinutes : Constants.defaultSmartLeadMinutes
+            let upcomingEvents = calendarMonitor.fetchUpcomingEvents(leadMinutes: effectiveLead)
+            nextCalendarEvent = upcomingEvents.first?.startDate
+            if let next = nextCalendarEvent {
+                logger.info("Next calendar event: \(next), lead=\(effectiveLead)min")
+            } else {
+                logger.info("No upcoming calendar events (lead=\(effectiveLead)min)")
+            }
+        } else {
+            nextCalendarEvent = nil
+        }
+
+        smartChargingStatus = SmartChargingStatus(
+            isEnabled: isSmartChargingEnabled,
+            isSmartCharging: smartScheduler.isSmartCharging,
+            smartChargingReason: {
+                switch smartScheduler.currentTrigger {
+                case .manualRule(let rule): return "규칙: \(rule.label)"
+                case .learnedPattern: return "학습된 패턴"
+                case .calendarEvent: return "캘린더 이벤트"
+                case .none: return ""
+                }
+            }(),
+            learningDays: learningDays,
+            learningProgress: progress,
+            isLearningComplete: learningDays >= Constants.learningPeriodDays,
+            detectedPatterns: learnedPatterns,
+            calendarEnabled: isCalendarIntegrationEnabled,
+            calendarAuthorized: calendarMonitor.authorizationStatus == EKAuthorizationStatus.fullAccess,
+            nextCalendarEvent: nextCalendarEvent,
+            currentCharge: batteryState.currentCharge
+        )
+    }
+
+    func toggleCalendarIntegration(_ enabled: Bool) {
+        isCalendarIntegrationEnabled = enabled
+        syncSmartChargingStatus()
+        logger.info("Calendar integration toggled: \(enabled)")
+    }
+
+    func toggleSmartCharging() {
+        isSmartChargingEnabled.toggle()
+        if isSmartChargingEnabled {
+            smartScheduler.clearForceDeactivate()
+        }
+        syncSmartChargingStatus()
+        logger.info("Smart charging toggled: \(self.isSmartChargingEnabled)")
+    }
+
+    func saveChargeRule(_ rule: ChargeRule) {
+        if let idx = chargeRules.firstIndex(where: { $0.id == rule.id }) {
+            chargeRules[idx] = rule
+        } else {
+            chargeRules.append(rule)
+        }
+        persistChargeRules()
+    }
+
+    func deleteChargeRule(id: UUID) {
+        chargeRules.removeAll { $0.id == id }
+        persistChargeRules()
+    }
+
+    func resetPatterns() {
+        patternTracker.resetPatterns()
+        smartScheduler.clearForceDeactivate()
+        syncSmartChargingStatus()
+        logger.info("Patterns reset by user")
+    }
+
+    var patternSlots: [[UsageSlot]] {
+        patternTracker.slots
+    }
+
+    var lastObservationDate: Date? {
+        patternTracker.lastObservationDate
+    }
+
+    private func loadChargeRules() {
+        guard let data = UserDefaults.standard.data(forKey: Constants.UserDefaultsKey.chargeRules),
+              let rules = try? JSONDecoder().decode([ChargeRule].self, from: data) else {
+            chargeRules = []
+            return
+        }
+        chargeRules = rules
+    }
+
+    private func persistChargeRules() {
+        guard let data = try? JSONEncoder().encode(chargeRules) else { return }
+        UserDefaults.standard.set(data, forKey: Constants.UserDefaultsKey.chargeRules)
     }
 }

@@ -3,6 +3,7 @@ import Foundation
 extension Notification.Name {
     static let statusBarNeedsUpdate = Notification.Name("statusBarNeedsUpdate")
     static let settingsTabSelected = Notification.Name("settingsTabSelected")
+    static let settingsWindowNeedsFront = Notification.Name("settingsWindowNeedsFront")
 }
 
 enum Constants {
@@ -24,6 +25,10 @@ enum Constants {
         static let claudeAPIKey = "claudeAPIKey"
         static let claudeAPIBase = "claudeAPIBase"
         static let claudeModel = "claudeModel"
+        static let smartChargingEnabled = "smartChargingEnabled"
+        static let chargeRules = "chargeRules"
+        static let defaultLeadMinutes = "defaultLeadMinutes"
+        static let calendarIntegrationEnabled = "calendarIntegrationEnabled"
     }
 
     // MARK: - SMC Keys
@@ -41,6 +46,15 @@ enum Constants {
     static let defaultRechargeMode = RechargeMode.smart
     static let pollingInterval: TimeInterval = 30
     static let hysteresis: Int = 5
-    static let historyRetentionDays = 7
+    static let historyRetentionDays = 30
     static let historyRecordInterval: TimeInterval = 60 // record every 60s
+
+    // MARK: - Smart Charging
+
+    static let patternObservationInterval: TimeInterval = 300
+    static let ewmaAlpha: Double = 0.1
+    static let patternThreshold: Double = 0.7
+    static let minPatternObservations: Int = 20
+    static let learningPeriodDays: Int = 14
+    static let defaultSmartLeadMinutes: Int = 60
 }

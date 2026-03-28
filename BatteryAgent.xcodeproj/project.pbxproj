@@ -17,23 +17,31 @@
 		5B361204116A8E70223E3858 /* ChargeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC545DDCCFF765E570E20A5E /* ChargeRecord.swift */; };
 		695D1B459ED587A5BBB4AA8A /* ChargeHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E702EA1B8152865FA64B11A /* ChargeHistoryStore.swift */; };
 		6DA34DB8E45FFA93C503690A /* BatteryAgentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5406AD53FA11283B14A951DD /* BatteryAgentApp.swift */; };
+		6DDDB8F28168B4BD5F44CEFB /* PopoverSmartChargingSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F24F1C8B18DEE3337D90859 /* PopoverSmartChargingSection.swift */; };
+		7324EF9ABA0232D6D69BA37F /* SmartChargingTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6F063BA4EA7BF5DC4E0C4C /* SmartChargingTab.swift */; };
 		7CF8A4ADB55DD4BC1654097C /* BatteryAgentHelper in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 78D2164E3A073D7CFC24D834 /* BatteryAgentHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		838C113429F1FDB4B9480D6E /* SMCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F8BD2F105C400A6A6306C2B /* SMCClient.swift */; };
 		97586BDBF5C4517D7E709E1B /* SettingsContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D4313194E5C6008E8A953 /* SettingsContainerView.swift */; };
 		99F6D0D7084F73F9459628F5 /* BatteryInfoTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68AEC5645976F2889736FC45 /* BatteryInfoTab.swift */; };
+		9D3DAA36C42B8144F42F47BC /* SmartChargeScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA690E7D2D6718AC3713A4E /* SmartChargeScheduler.swift */; };
 		AC2FABE3A0E04467CF46ACF5 /* ChargeControlTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD81AF87E7D7A0D2A584B179 /* ChargeControlTab.swift */; };
+		AE320A26D04ECC4FA410C2DB /* ChargeRuleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D319AF615B1187618FB150E3 /* ChargeRuleEditorView.swift */; };
 		B0EE4EF4AD9AB7F70A2F351F /* MenuBarIconProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E372AC048F4FDBF7C3DD95F /* MenuBarIconProvider.swift */; };
+		C02160E6D1B8A519EDDA5801 /* SmartChargingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE22866C5EF3FFF4545B295 /* SmartChargingState.swift */; };
 		C5596F53C8AB3719EF99AF8D /* BatteryState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 513349EEAD41EA278AA15446 /* BatteryState.swift */; };
+		C6DD7A558340802E243FA315 /* UsagePatternTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */; };
 		CDBC1B4B678E5DAA1219D666 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4DC0323DCBC403CBD2D5D90 /* Constants.swift */; };
 		CEF2B5804064D757607129F9 /* SMCController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 449C3C57BAB10BF8143ABB43 /* SMCController.swift */; };
 		CF6B000112209447D85F28EE /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 591C26E30D16512D2EAB36DC /* NotificationManager.swift */; };
 		E07AE453F9E0D6FF37843582 /* HistoryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = F105A62A03979286A7A26679 /* HistoryTab.swift */; };
 		E37E8E05CA8D2770461EBCC7 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4353B633127F96C4C84960B5 /* main.swift */; };
 		E650BDA96C3E1BEC9646AA8D /* AITab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA55E47D619545252ACA56E /* AITab.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* CalendarMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5061728394A5B6C /* CalendarMonitor.swift */; };
 		EBA2CB89F77522EECEF9B7BF /* CalibrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2972EF6C83E93F9A84730A93 /* CalibrationManager.swift */; };
 		F9DDDFF25BA7EE9E26FEC381 /* CalibrationTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A8F898ADA1916FFA57D694 /* CalibrationTab.swift */; };
 		FAF03DCBEB33F4ABBC4FFD29 /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC5F4DA51AA89C6E3B8B2B4 /* PopoverView.swift */; };
 		FC3868715DD263D034E0689A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 358DAA874267162DA5D9D61D /* AppDelegate.swift */; };
+		FDA7E91414848BAC4953D478 /* PatternHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3716D31EA657C892A6E19E01 /* PatternHeatmapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,16 +71,20 @@
 /* Begin PBXFileReference section */
 		0A26E40F23CB45A4D55EACB3 /* BatterySliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatterySliderView.swift; sourceTree = "<group>"; };
 		0E372AC048F4FDBF7C3DD95F /* MenuBarIconProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconProvider.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5061728394A5B6C /* CalendarMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMonitor.swift; sourceTree = "<group>"; };
 		2972EF6C83E93F9A84730A93 /* CalibrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationManager.swift; sourceTree = "<group>"; };
 		2EC5F4DA51AA89C6E3B8B2B4 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		358DAA874267162DA5D9D61D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3716D31EA657C892A6E19E01 /* PatternHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternHeatmapView.swift; sourceTree = "<group>"; };
 		3E702EA1B8152865FA64B11A /* ChargeHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeHistoryStore.swift; sourceTree = "<group>"; };
+		3F24F1C8B18DEE3337D90859 /* PopoverSmartChargingSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverSmartChargingSection.swift; sourceTree = "<group>"; };
 		4353B633127F96C4C84960B5 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		449C3C57BAB10BF8143ABB43 /* SMCController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCController.swift; sourceTree = "<group>"; };
 		5025DDB58F7CD24DF5EF55F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		513349EEAD41EA278AA15446 /* BatteryState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryState.swift; sourceTree = "<group>"; };
 		5406AD53FA11283B14A951DD /* BatteryAgentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryAgentApp.swift; sourceTree = "<group>"; };
 		591C26E30D16512D2EAB36DC /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		5DA690E7D2D6718AC3713A4E /* SmartChargeScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartChargeScheduler.swift; sourceTree = "<group>"; };
 		6258232C9DFCD229AC0490BC /* ChargePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargePolicy.swift; sourceTree = "<group>"; };
 		68AEC5645976F2889736FC45 /* BatteryInfoTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryInfoTab.swift; sourceTree = "<group>"; };
 		6922C33F39320EF97A8F2E63 /* GeneralTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralTab.swift; sourceTree = "<group>"; };
@@ -82,15 +94,19 @@
 		7EA55E47D619545252ACA56E /* AITab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITab.swift; sourceTree = "<group>"; };
 		80F9842344CCAC0E0BA4D38C /* BatteryAgentHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BatteryAgentHelper.entitlements; sourceTree = "<group>"; };
 		9F8BD2F105C400A6A6306C2B /* SMCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCClient.swift; sourceTree = "<group>"; };
+		AB6F063BA4EA7BF5DC4E0C4C /* SmartChargingTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartChargingTab.swift; sourceTree = "<group>"; };
 		AD81AF87E7D7A0D2A584B179 /* ChargeControlTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeControlTab.swift; sourceTree = "<group>"; };
 		B5323D56839C159F7190DF42 /* XPCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCProtocol.swift; sourceTree = "<group>"; };
 		C11C962F5084F4871849FDDE /* BatteryAgent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BatteryAgent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4DC0323DCBC403CBD2D5D90 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		D319AF615B1187618FB150E3 /* ChargeRuleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeRuleEditorView.swift; sourceTree = "<group>"; };
 		D973A2109257D22E9C9C4121 /* BatteryAgent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BatteryAgent.entitlements; sourceTree = "<group>"; };
 		DC545DDCCFF765E570E20A5E /* ChargeRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeRecord.swift; sourceTree = "<group>"; };
+		EEE22866C5EF3FFF4545B295 /* SmartChargingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartChargingState.swift; sourceTree = "<group>"; };
 		F105A62A03979286A7A26679 /* HistoryTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTab.swift; sourceTree = "<group>"; };
 		F1A8F898ADA1916FFA57D694 /* CalibrationTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationTab.swift; sourceTree = "<group>"; };
 		F24B6777EDE470390CCBF710 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsagePatternTracker.swift; sourceTree = "<group>"; };
 		FF09DC63E29E5B6EAE9E12BC /* BatteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -110,6 +126,7 @@
 				513349EEAD41EA278AA15446 /* BatteryState.swift */,
 				6258232C9DFCD229AC0490BC /* ChargePolicy.swift */,
 				DC545DDCCFF765E570E20A5E /* ChargeRecord.swift */,
+				EEE22866C5EF3FFF4545B295 /* SmartChargingState.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -130,9 +147,12 @@
 				68AEC5645976F2889736FC45 /* BatteryInfoTab.swift */,
 				F1A8F898ADA1916FFA57D694 /* CalibrationTab.swift */,
 				AD81AF87E7D7A0D2A584B179 /* ChargeControlTab.swift */,
+				D319AF615B1187618FB150E3 /* ChargeRuleEditorView.swift */,
 				6922C33F39320EF97A8F2E63 /* GeneralTab.swift */,
 				F105A62A03979286A7A26679 /* HistoryTab.swift */,
+				3716D31EA657C892A6E19E01 /* PatternHeatmapView.swift */,
 				707D4313194E5C6008E8A953 /* SettingsContainerView.swift */,
+				AB6F063BA4EA7BF5DC4E0C4C /* SmartChargingTab.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -141,6 +161,7 @@
 			isa = PBXGroup;
 			children = (
 				0A26E40F23CB45A4D55EACB3 /* BatterySliderView.swift */,
+				3F24F1C8B18DEE3337D90859 /* PopoverSmartChargingSection.swift */,
 				2EC5F4DA51AA89C6E3B8B2B4 /* PopoverView.swift */,
 				4F30D6B2C106E075775ADC4A /* Settings */,
 			);
@@ -201,10 +222,13 @@
 			isa = PBXGroup;
 			children = (
 				6E894B6084418DFC0154998C /* BatteryMonitor.swift */,
+				B1C2D3E4F5061728394A5B6C /* CalendarMonitor.swift */,
 				2972EF6C83E93F9A84730A93 /* CalibrationManager.swift */,
 				3E702EA1B8152865FA64B11A /* ChargeHistoryStore.swift */,
 				591C26E30D16512D2EAB36DC /* NotificationManager.swift */,
+				5DA690E7D2D6718AC3713A4E /* SmartChargeScheduler.swift */,
 				9F8BD2F105C400A6A6306C2B /* SMCClient.swift */,
+				F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -320,20 +344,28 @@
 				25412F0CB100CA190D83EB90 /* BatterySliderView.swift in Sources */,
 				C5596F53C8AB3719EF99AF8D /* BatteryState.swift in Sources */,
 				5619DFA264D036F152C51769 /* BatteryViewModel.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* CalendarMonitor.swift in Sources */,
 				EBA2CB89F77522EECEF9B7BF /* CalibrationManager.swift in Sources */,
 				F9DDDFF25BA7EE9E26FEC381 /* CalibrationTab.swift in Sources */,
 				AC2FABE3A0E04467CF46ACF5 /* ChargeControlTab.swift in Sources */,
 				695D1B459ED587A5BBB4AA8A /* ChargeHistoryStore.swift in Sources */,
 				5655910CA6F078BC492679F2 /* ChargePolicy.swift in Sources */,
 				5B361204116A8E70223E3858 /* ChargeRecord.swift in Sources */,
+				AE320A26D04ECC4FA410C2DB /* ChargeRuleEditorView.swift in Sources */,
 				CDBC1B4B678E5DAA1219D666 /* Constants.swift in Sources */,
 				2AF49CF5791B7EDAE4B9DB05 /* GeneralTab.swift in Sources */,
 				E07AE453F9E0D6FF37843582 /* HistoryTab.swift in Sources */,
 				B0EE4EF4AD9AB7F70A2F351F /* MenuBarIconProvider.swift in Sources */,
 				CF6B000112209447D85F28EE /* NotificationManager.swift in Sources */,
+				FDA7E91414848BAC4953D478 /* PatternHeatmapView.swift in Sources */,
+				6DDDB8F28168B4BD5F44CEFB /* PopoverSmartChargingSection.swift in Sources */,
 				FAF03DCBEB33F4ABBC4FFD29 /* PopoverView.swift in Sources */,
 				838C113429F1FDB4B9480D6E /* SMCClient.swift in Sources */,
 				97586BDBF5C4517D7E709E1B /* SettingsContainerView.swift in Sources */,
+				9D3DAA36C42B8144F42F47BC /* SmartChargeScheduler.swift in Sources */,
+				C02160E6D1B8A519EDDA5801 /* SmartChargingState.swift in Sources */,
+				7324EF9ABA0232D6D69BA37F /* SmartChargingTab.swift in Sources */,
+				C6DD7A558340802E243FA315 /* UsagePatternTracker.swift in Sources */,
 				50A70B46B3C57C288B5F709B /* XPCProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -369,7 +401,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.0.0\nCFBundleVersion=1\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.1.0\nCFBundleVersion=2\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -449,7 +481,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.0.0\nCFBundleVersion=1\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.1.0\nCFBundleVersion=2\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
