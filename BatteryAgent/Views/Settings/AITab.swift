@@ -348,6 +348,7 @@ struct AITab: View {
                     let (reason, detail) = analyzeError(combined: combined, errMsg: errMsg, exitCode: process.terminationStatus)
                     errorDetail = detail
                     connectionStatus = .disconnected(reason)
+                    showErrorDetail = true
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -374,16 +375,22 @@ struct AITab: View {
     private func analyzeError(combined: String, errMsg: String, exitCode: Int32) -> (reason: String, detail: String) {
         if combined.contains("authentication") || combined.contains("auth")
             || combined.contains("not logged in") || combined.contains("login")
-            || combined.contains("unauthenticated") {
+            || combined.contains("unauthenticated") || combined.contains("oauth")
+            || combined.contains("token") || combined.contains("credential") {
             return (
                 "로그인 필요",
                 """
-                Claude Code에 로그인되어 있지 않습니다.
+                Claude Code에 로그인되어 있지 않거나 인증 정보를 찾을 수 없습니다.
+
+                ⚠️ 환경변수(ANTHROPIC_API_KEY 등)로 인증하는 경우, 이 앱에서는 해당 환경변수를 인식하지 못할 수 있습니다.
 
                 해결 방법:
-                1. 터미널을 열고 'claude' 입력
-                2. 안내에 따라 로그인 (Anthropic 계정 또는 API 키)
-                3. 로그인 완료 후 여기서 '연결 확인' 재시도
+                1. 터미널에서 'claude /login' 실행
+                2. 브라우저에서 Anthropic 계정으로 로그인
+                3. 키체인에 인증 정보가 저장되면 이 앱에서도 정상 연결됩니다
+                4. 로그인 완료 후 '연결 확인' 버튼을 다시 눌러주세요
+
+                💡 환경변수 대신 /login으로 로그인하면 모든 앱에서 Claude Code를 사용할 수 있습니다.
 
                 원본 에러:
                 \(errMsg)

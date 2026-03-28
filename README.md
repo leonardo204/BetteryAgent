@@ -18,10 +18,10 @@
 
 ## 주요 기능
 
-- **충전 제한 관리** — 사용자 설정 %까지만 충전, 이후 SMC로 충전 차단
+- **충전 제한 관리** — 사용자 설정 %까지만 충전, 이후 SMC로 충전 차단 (AC 모드 유지)
 - **스마트 충전** — 사용 패턴 학습(14일) 기반 예측 충전, 캘린더 연동, 수동 규칙
 - **메뉴바 전용** — Dock 아이콘 없이 메뉴바에서 즉시 제어
-- **배터리 건강 분석** — AI 기반 배터리 상태 분석 및 수명 예측
+- **배터리 건강 분석** — Claude Code 연동 AI 배터리 상태 분석 및 수명 예측
 - **충전 이력** — SQLite 기반 충전/방전 기록 및 차트
 
 ## 스크린샷
@@ -51,6 +51,20 @@ bash build_dmg.sh
 - macOS 14.0 (Sonoma) 이상
 - Apple Silicon 또는 Intel Mac
 - 충전 제어를 위한 관리자 권한 (최초 1회)
+- (선택) [Claude Code](https://claude.ai/claude-code) — AI 배터리 분석 및 캘린더 이벤트 분류
+
+### Claude Code 연동
+
+AI 분석 및 캘린더 이벤트 자동 분류를 사용하려면 Claude Code가 필요합니다.
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude /login    # 키체인에 인증 저장 (환경변수 방식은 이 앱에서 인식 불가)
+```
+
+> **참고**: 환경변수(`ANTHROPIC_API_KEY` 등)로 인증하면 터미널에서만 동작합니다.
+> `claude /login`으로 키체인에 저장해야 BatteryAgent에서도 연결됩니다.
+> 연결 실패 시 설정 > AI 분석 정보에서 상세 원인과 해결 방법을 확인할 수 있습니다.
 
 ## 아키텍처
 
@@ -109,7 +123,7 @@ Shared/                   # XPC 프로토콜
 |------|------|
 | UI | SwiftUI |
 | 배터리 읽기 | IOKit (IOPSCopyPowerSourcesInfo, AppleSmartBattery) |
-| 충전 제어 | SMC (CH0B, CH0C, CH0I 키) |
+| 충전 제어 | SMC (CH0B, CH0C 키 — 충전 차단만, 강제 방전 없이 AC 모드 유지) |
 | 데이터 저장 | SQLite (충전 이력, 패턴 데이터) |
 | 캘린더 | EventKit + Claude Code AI 분류 |
 | 권한 관리 | Security.framework (AuthorizationExecuteWithPrivileges) |
