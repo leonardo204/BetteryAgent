@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/macOS-14.0%2B-blue" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Swift-6.0-orange" alt="Swift 6">
-  <img src="https://img.shields.io/badge/version-1.1.0-green" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.2.0-green" alt="Version">
 </p>
 
 ---
@@ -89,6 +89,20 @@ Shared/                   # XPC 프로토콜
 - 패턴 감지 시 100% 충전 → 이후 정상 제한 복귀
 - 7일 x 48슬롯(30분) 히트맵 시각화
 
+### 캘린더 이벤트 분류
+
+캘린더 연동 시 30초 폴링으로 향후 24시간 이벤트를 조회하고, 노트북이 필요한 이벤트만 충전 대상으로 분류합니다.
+
+| 분류 방법 | 조건 | 설명 |
+|-----------|------|------|
+| 키워드 매칭 | 제목에 "회의", "meeting", "스크럼" 등 포함 | 즉시 판별, 오프라인 동작 |
+| 시간 기반 | 1시간 이상 이벤트 | 키워드 없어도 충전 대상 |
+| AI 분류 | Claude Code 설치 시 | 제목 기반 자동 분류, 결과 캐싱 |
+
+- Claude Code 미설치 시 키워드 + 시간 기반 폴백으로 동작
+- AI 분류 결과는 캐싱되어 동일 이벤트 재질의 방지
+- 이벤트 제목만 전달 (내용/참석자 미수집)
+
 ## 기술 스택
 
 | 항목 | 기술 |
@@ -97,7 +111,7 @@ Shared/                   # XPC 프로토콜
 | 배터리 읽기 | IOKit (IOPSCopyPowerSourcesInfo, AppleSmartBattery) |
 | 충전 제어 | SMC (CH0B, CH0C, CH0I 키) |
 | 데이터 저장 | SQLite (충전 이력, 패턴 데이터) |
-| 캘린더 | EventKit |
+| 캘린더 | EventKit + Claude Code AI 분류 |
 | 권한 관리 | Security.framework (AuthorizationExecuteWithPrivileges) |
 | 데몬 통신 | Unix Domain Socket |
 
