@@ -159,7 +159,7 @@ struct AITab: View {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
             // --print -p 패턴으로 실제 API 인증 확인 (동작 확인된 패턴)
-            process.arguments = ["--print", "-p", "Say 'OK' if you can hear me.", "--model", "claude-sonnet-4-6"]
+            process.arguments = ["--print", "-p", "Reply with only your model name (e.g. claude-opus-4-6)."]
 
             let outPipe = Pipe()
             let errPipe = Pipe()
@@ -182,14 +182,16 @@ struct AITab: View {
                 timer.cancel()
 
                 let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
-                let _ = (String(data: outData, encoding: .utf8) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                let output = (String(data: outData, encoding: .utf8) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 
                 DispatchQueue.main.async {
                     isCheckingConnection = false
                     if timedOut {
                         connectionStatus = .disconnected("타임아웃 (30초)")
                     } else if process.terminationStatus == 0 {
-                        connectionStatus = .connected("claude-sonnet-4-6")
+                        // 응답에서 모델명 추출
+                        let modelName = output.isEmpty ? "claude" : output.components(separatedBy: .newlines).last ?? "claude"
+                        connectionStatus = .connected(modelName)
                     } else {
                         let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
                         let errMsg = (String(data: errData, encoding: .utf8) ?? "")
@@ -258,7 +260,7 @@ struct AITab: View {
         DispatchQueue.global(qos: .userInitiated).async {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
-            process.arguments = ["--print", "-p", prompt, "--model", "claude-sonnet-4-6"]
+            process.arguments = ["--print", "-p", prompt]
 
             let outPipe = Pipe()
             let errPipe = Pipe()
