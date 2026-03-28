@@ -7,6 +7,25 @@ struct PopoverView: View {
 
     var body: some View {
         VStack(spacing: 12) {
+            // Daemon warning banner
+            if !SMCClient.shared.isDaemonRunning {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                    Text("충전 제어 헬퍼 미설치")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    Spacer()
+                    Button("설치") {
+                        SMCClient.shared.installDaemon { _ in }
+                    }
+                    .font(.caption)
+                    .controlSize(.small)
+                }
+                Divider()
+            }
+
             // Status row
             HStack {
                 Image(systemName: statusIcon)
@@ -64,9 +83,24 @@ struct PopoverView: View {
                         .font(.body)
                 }
                 .buttonStyle(.borderless)
+
+                Button {
+                    NSApplication.shared.terminate(nil)
+                } label: {
+                    Image(systemName: "power")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                }
+                .buttonStyle(.borderless)
+                .help("앱 종료")
             }
 
             Divider()
+
+            // 스마트 충전 상태 섹션
+            if viewModel.smartChargingStatus.isEnabled {
+                PopoverSmartChargingSection(status: viewModel.smartChargingStatus)
+            }
 
             // AI 상태 섹션
             AIStatusSectionView(

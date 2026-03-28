@@ -4,6 +4,31 @@ import IOKit.ps
 
 class BatteryMonitor {
 
+    private var powerSourceCallback: (() -> Void)?
+    private var runLoopSource: CFRunLoopSource?
+
+    /// 전원 상태 변경 시 즉시 콜백 호출 (충전 연결/해제 등)
+    func startPowerSourceMonitoring(onChange: @escaping () -> Void) {
+        powerSourceCallback = onChange
+        let context = Unmanaged.passUnretained(self).toOpaque()
+        if let source = IOPSCreateLimitedPowerNotification({ context in
+            guard let context else { return }
+            let monitor = Unmanaged<BatteryMonitor>.fromOpaque(context).takeUnretainedValue()
+            monitor.powerSourceCallback?()
+        }, context)?.takeRetainedValue() {
+            runLoopSource = source
+            CFRunLoopAddSource(CFRunLoopGetMain(), source, .defaultMode)
+        }
+    }
+
+    func stopPowerSourceMonitoring() {
+        if let source = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .defaultMode)
+            runLoopSource = nil
+        }
+        powerSourceCallback = nil
+    }
+
     func getBatteryState() -> BatteryState {
         var state = BatteryState()
 
