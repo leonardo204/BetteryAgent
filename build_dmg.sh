@@ -3,7 +3,7 @@ set -e
 
 # ── 설정 ──────────────────────────────────────────────
 APP_NAME="BatteryAgent"
-VERSION="1.0.0"
+VERSION="1.1.0"
 SCHEME="BatteryAgent"
 PROJECT="BatteryAgent.xcodeproj"
 SIGNING_IDENTITY="Developer ID Application: YONGSUB LEE (XU8HS9JUTS)"
@@ -78,17 +78,11 @@ echo "   서명 검증 통과"
 # ── DMG 생성 ──────────────────────────────────────────
 echo "▶ DMG 생성 중..."
 rm -f "$DMG_PATH"
-create-dmg \
-    --volname "$APP_NAME" \
-    --window-pos 200 120 \
-    --window-size 560 340 \
-    --icon-size 100 \
-    --icon "$APP_NAME.app" 140 160 \
-    --hide-extension "$APP_NAME.app" \
-    --app-drop-link 420 160 \
-    --no-internet-enable \
-    "$DMG_PATH" \
-    "$DMG_STAGING"
+hdiutil create \
+    -volname "$APP_NAME" \
+    -srcfolder "$DMG_STAGING" \
+    -ov -format UDZO \
+    "$DMG_PATH"
 
 echo "▶ DMG 생성 완료: $(du -sh "$DMG_PATH" | cut -f1)"
 

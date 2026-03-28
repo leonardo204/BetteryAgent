@@ -17,14 +17,16 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.1.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>BatteryAgent uses Apple Events to run privileged helper commands for battery charge control.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>BatteryAgent uses your calendar to pre-charge your battery before upcoming events.</string>
 </dict>
 </plist>
