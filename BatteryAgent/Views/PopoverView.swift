@@ -68,15 +68,6 @@ struct PopoverView: View {
                 Spacer()
 
                 Button {
-                    onOpenAISettings()
-                } label: {
-                    Image(systemName: "brain")
-                        .font(.caption)
-                }
-                .buttonStyle(.borderless)
-                .help("AI 분석")
-
-                Button {
                     onOpenSettings()
                 } label: {
                     Image(systemName: "gearshape")

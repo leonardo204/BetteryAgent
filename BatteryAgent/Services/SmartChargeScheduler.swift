@@ -42,17 +42,25 @@ final class SmartChargeScheduler {
         let currentMinuteOfDay = hour * 60 + minute
 
         // 1. Check manual rules (highest priority)
-        for rule in manualRules where rule.enabled && rule.daysOfWeek.contains(weekday) {
+        // 자정 넘는 윈도우: 전날 weekday도 확인 필요
+        let previousWeekday = weekday == 1 ? 7 : weekday - 1
+
+        for rule in manualRules where rule.enabled {
             let targetMinuteOfDay = rule.targetHour * 60 + rule.targetMinute
             let windowStart = targetMinuteOfDay - rule.leadMinutes
             let windowEnd = targetMinuteOfDay
 
             let inWindow: Bool
             if windowStart < 0 {
-                // Window crosses midnight
+                // Window crosses midnight — 전날 요일 또는 당일 요일 매칭 필요
+                let matchesDay = rule.daysOfWeek.contains(weekday)
+                    || rule.daysOfWeek.contains(previousWeekday)
+                guard matchesDay else { continue }
+
                 let adjustedStart = windowStart + 24 * 60
                 inWindow = currentMinuteOfDay >= adjustedStart || currentMinuteOfDay <= windowEnd
             } else {
+                guard rule.daysOfWeek.contains(weekday) else { continue }
                 inWindow = currentMinuteOfDay >= windowStart && currentMinuteOfDay <= windowEnd
             }
 

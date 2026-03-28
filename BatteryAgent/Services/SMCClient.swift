@@ -15,13 +15,37 @@ final class SMCClient: Sendable {
 
     nonisolated private init() {}
 
-    // MARK: - Public API
+    // MARK: - Daemon Status (캐싱)
+
+    /// 캐싱된 데몬 상태 — 10초마다 갱신
+    private nonisolated(unsafe) let _daemonStatusLock = NSLock()
+    private nonisolated(unsafe) var _cachedDaemonRunning: Bool = false
+    private nonisolated(unsafe) var _lastDaemonCheck: Date = .distantPast
 
     var isDaemonRunning: Bool {
-        // 소켓 파일 존재 + 실제 연결 가능 여부 확인
-        guard FileManager.default.fileExists(atPath: socketPath) else { return false }
-        return sendViaSocket("ping") != nil
+        _daemonStatusLock.lock()
+        defer { _daemonStatusLock.unlock() }
+
+        let now = Date()
+        if now.timeIntervalSince(_lastDaemonCheck) < 10 {
+            return _cachedDaemonRunning
+        }
+
+        let running = FileManager.default.fileExists(atPath: socketPath)
+            && sendViaSocket("ping") != nil
+        _cachedDaemonRunning = running
+        _lastDaemonCheck = now
+        return running
     }
+
+    /// 데몬 상태 캐시 무효화 (설치 후 등)
+    private func invalidateDaemonCache() {
+        _daemonStatusLock.lock()
+        _lastDaemonCheck = .distantPast
+        _daemonStatusLock.unlock()
+    }
+
+    // MARK: - Public API
 
     func enableCharging(completion: @escaping @Sendable (Bool) -> Void) {
         sendCommand("enable-charging", completion: completion)
@@ -41,7 +65,7 @@ final class SMCClient: Sendable {
         let helperPath = bundledHelperPath
         logger.info("Installing daemon from: \(helperPath)")
 
-        DispatchQueue.global(qos: .userInitiated).async { [logger] in
+        DispatchQueue.global(qos: .userInitiated).async { [self, logger] in
             let ok = Self.runPrivileged(tool: helperPath, args: ["install-daemon"], logger: logger)
             if ok {
                 // Wait for daemon socket to appear (up to 3 seconds)
@@ -50,6 +74,7 @@ final class SMCClient: Sendable {
                     if FileManager.default.fileExists(atPath: "/tmp/BatteryAgentHelper.sock") { break }
                 }
             }
+            self.invalidateDaemonCache()
             completion(ok)
         }
     }
@@ -60,19 +85,37 @@ final class SMCClient: Sendable {
         logger.info("SMC command: \(command)")
 
         DispatchQueue.global(qos: .userInitiated).async { [self, logger] in
-            if self.isDaemonRunning {
-                let result = self.sendViaSocket(command)
-                logger.info("Socket result: \(result ?? "nil")")
-                completion(result?.hasPrefix("OK") ?? false)
-            } else {
-                logger.info("Daemon not running, using privileged fallback")
-                let success = Self.runPrivileged(
-                    tool: self.bundledHelperPath,
-                    args: [command],
-                    logger: logger
-                )
-                completion(success)
+            // 소켓으로 직접 시도 (캐시된 상태와 무관하게)
+            if let result = self.sendViaSocket(command) {
+                logger.info("Socket result: \(result)")
+                completion(result.hasPrefix("OK"))
+                return
             }
+
+            // 소켓 실패 → 데몬 재설치 시도 (1회)
+            logger.info("Socket failed, attempting daemon reinstall")
+            let helperPath = self.bundledHelperPath
+            let installed = Self.runPrivileged(tool: helperPath, args: ["install-daemon"], logger: logger)
+
+            if installed {
+                // 설치 후 소켓 대기
+                for _ in 0..<30 {
+                    Thread.sleep(forTimeInterval: 0.1)
+                    if FileManager.default.fileExists(atPath: self.socketPath) { break }
+                }
+                self.invalidateDaemonCache()
+
+                // 재시도
+                if let result = self.sendViaSocket(command) {
+                    logger.info("Socket result after reinstall: \(result)")
+                    completion(result.hasPrefix("OK"))
+                    return
+                }
+            }
+
+            logger.error("Failed to send command even after reinstall attempt")
+            self.invalidateDaemonCache()
+            completion(false)
         }
     }
 
@@ -80,6 +123,11 @@ final class SMCClient: Sendable {
         let sock = socket(AF_UNIX, SOCK_STREAM, 0)
         guard sock >= 0 else { return nil }
         defer { close(sock) }
+
+        // 소켓 타임아웃 설정 (5초)
+        var timeout = timeval(tv_sec: 5, tv_usec: 0)
+        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+        setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
 
         var addr = sockaddr_un()
         addr.sun_family = sa_family_t(AF_UNIX)
@@ -111,10 +159,7 @@ final class SMCClient: Sendable {
 
     // MARK: - Privileged Execution
 
-    /// Runs `tool` with `args` as root using the native macOS authorization dialog.
-    /// Uses Security framework's AuthorizationExecuteWithPrivileges — no Apple Events permission needed.
     private static func runPrivileged(tool: String, args: [String], logger: Logger) -> Bool {
-        // 1. Create authorization reference
         var authRef: AuthorizationRef?
         guard AuthorizationCreate(nil, nil, [], &authRef) == errAuthorizationSuccess,
               let auth = authRef else {
@@ -123,7 +168,6 @@ final class SMCClient: Sendable {
         }
         defer { AuthorizationFree(auth, [.destroyRights]) }
 
-        // 2. Show native macOS password dialog
         let authStatus: OSStatus = kAuthorizationRightExecute.withCString { namePtr in
             var item = AuthorizationItem(name: namePtr, valueLength: 0, value: nil, flags: 0)
             return withUnsafeMutablePointer(to: &item) { itemPtr in
@@ -141,18 +185,14 @@ final class SMCClient: Sendable {
             return false
         }
 
-        // 3. Invoke AuthorizationExecuteWithPrivileges via dlsym
-        // (deprecated but functional; accessed this way to avoid compiler warnings)
-        // Signature: OSStatus(AuthorizationRef, const char*, AuthorizationFlags, char*const*, FILE**)
         typealias AuthExecFn = @convention(c) (
-            AuthorizationRef,                                        // authorization
-            UnsafePointer<CChar>,                                    // pathToTool
-            AuthorizationFlags,                                      // options
-            UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?,     // arguments
-            UnsafeMutablePointer<UnsafeMutablePointer<FILE>?>?       // communicationsPipe
+            AuthorizationRef,
+            UnsafePointer<CChar>,
+            AuthorizationFlags,
+            UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?,
+            UnsafeMutablePointer<UnsafeMutablePointer<FILE>?>?
         ) -> OSStatus
 
-        // RTLD_DEFAULT = (void *)(-2) on Darwin — searches all currently loaded libraries
         let rtldDefault = UnsafeMutableRawPointer(bitPattern: -2)
         guard let sym = dlsym(rtldDefault, "AuthorizationExecuteWithPrivileges") else {
             logger.error("AuthorizationExecuteWithPrivileges symbol not found")
@@ -160,7 +200,6 @@ final class SMCClient: Sendable {
         }
         let authExec = unsafeBitCast(sym, to: AuthExecFn.self)
 
-        // 4. Build null-terminated C argument array and execute
         let cArgs: [UnsafeMutablePointer<CChar>] = args.compactMap { strdup($0) }
         defer { cArgs.forEach { free($0) } }
         var argv: [UnsafeMutablePointer<CChar>?] = cArgs.map { Optional($0) } + [nil]

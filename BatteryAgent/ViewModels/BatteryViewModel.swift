@@ -353,7 +353,7 @@ class BatteryViewModel {
 
         // If smart charging is active and we're below the effective limit, ensure charging is enabled
         if effectiveLimit == 100 && batteryState.currentCharge < 100 && batteryState.isPluggedIn {
-            // We need to charge up to 100%, so make sure charging is enabled
+            smcClient.setForceDischarge(false) { _ in }
             if !batteryState.isCharging {
                 smcClient.enableCharging { _ in }
             }
@@ -373,11 +373,15 @@ class BatteryViewModel {
             logger.info("Charge \(charge)% == effectiveLimit \(effectiveLimit)%, holding")
             smcClient.disableCharging { _ in }
             smcClient.setForceDischarge(false) { _ in }
-        } else if charge < effectiveRechargeThreshold && pluggedIn {
-            logger.info("Charge \(charge)% < \(self.effectiveRechargeThreshold)%, re-enabling charging")
-            smcClient.enableCharging { _ in }
+        } else if charge < effectiveLimit && pluggedIn {
+            // effectiveLimit 미만: 충전 재활성화 + 방전 중지
+            if charge < effectiveRechargeThreshold {
+                logger.info("Charge \(charge)% < \(self.effectiveRechargeThreshold)%, re-enabling charging")
+                smcClient.enableCharging { _ in }
+                hasNotifiedCompletion = false
+            }
+            // effectiveLimit 미만이면 항상 방전 중지
             smcClient.setForceDischarge(false) { _ in }
-            hasNotifiedCompletion = false
         }
 
         // Safety: never go below discharge floor
