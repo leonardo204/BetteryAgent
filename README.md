@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/macOS-14.0%2B-blue" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Swift-6.0-orange" alt="Swift 6">
-  <img src="https://img.shields.io/badge/version-1.2.0-green" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.3.0-green" alt="Version">
 </p>
 
 ---
