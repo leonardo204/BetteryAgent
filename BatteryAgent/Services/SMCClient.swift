@@ -18,7 +18,9 @@ final class SMCClient: Sendable {
     // MARK: - Public API
 
     var isDaemonRunning: Bool {
-        FileManager.default.fileExists(atPath: socketPath)
+        // 소켓 파일 존재 + 실제 연결 가능 여부 확인
+        guard FileManager.default.fileExists(atPath: socketPath) else { return false }
+        return sendViaSocket("ping") != nil
     }
 
     func enableCharging(completion: @escaping @Sendable (Bool) -> Void) {

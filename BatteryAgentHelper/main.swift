@@ -225,11 +225,19 @@ func installDaemon() -> Int32 {
     let plistPath = "/Library/LaunchDaemons/com.zerolive.BatteryAgentHelper.plist"
 
     do {
-        // Copy binary
+        // Copy binary — /bin/cp preserves code signature (extended attributes)
         if FileManager.default.fileExists(atPath: dst) {
             try FileManager.default.removeItem(atPath: dst)
         }
-        try FileManager.default.copyItem(atPath: src, toPath: dst)
+        let cpTask = Process()
+        cpTask.executableURL = URL(fileURLWithPath: "/bin/cp")
+        cpTask.arguments = [src, dst]
+        try cpTask.run()
+        cpTask.waitUntilExit()
+        guard cpTask.terminationStatus == 0 else {
+            fputs("ERROR: /bin/cp failed with status \(cpTask.terminationStatus)\n", stderr)
+            return 1
+        }
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dst)
 
         // Create LaunchDaemon plist
@@ -255,6 +263,16 @@ func installDaemon() -> Int32 {
         </plist>
         """
         try plist.write(toFile: plistPath, atomically: true, encoding: .utf8)
+
+        // Unload existing daemon (ignore errors if not loaded)
+        let unloadTask = Process()
+        unloadTask.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        unloadTask.arguments = ["unload", plistPath]
+        try? unloadTask.run()
+        unloadTask.waitUntilExit()
+
+        // Remove stale socket
+        try? FileManager.default.removeItem(atPath: "/tmp/BatteryAgentHelper.sock")
 
         // Load daemon
         let task = Process()

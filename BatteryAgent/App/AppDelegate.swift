@@ -8,6 +8,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var viewModel: BatteryViewModel?
     private var settingsWindow: NSWindow?
     private var iconUpdateTimer: Timer?
+    private var eventMonitor: Any?
+    private var localKeyMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -23,6 +25,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.updateStatusBar()
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .settingsWindowNeedsFront, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                if let window = self?.settingsWindow {
+                    window.makeKeyAndOrderFront(nil)
+                    window.orderFrontRegardless()
+                    NSApp.activate(ignoringOtherApps: true)
+                }
             }
         }
     }
@@ -60,13 +74,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func togglePopover() {
         guard let button = statusItem?.button, let popover else { return }
         if popover.isShown {
-            popover.performClose(nil)
-            updateStatusBar()
+            closePopover()
         } else {
             viewModel?.updateBatteryState()
             updateStatusBar()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate()
+            startEventMonitor()
+        }
+    }
+
+    private func closePopover() {
+        popover?.performClose(nil)
+        updateStatusBar()
+        stopEventMonitor()
+    }
+
+    private func startEventMonitor() {
+        stopEventMonitor()
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.leftMouseDown, .rightMouseDown]
+        ) { [weak self] _ in
+            self?.closePopover()
+        }
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "q" {
+                self?.openSettings(tab: 0)
+                return nil
+            }
+            return event
+        }
+    }
+
+    private func stopEventMonitor() {
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
+        if let monitor = localKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            localKeyMonitor = nil
         }
     }
 
@@ -77,8 +124,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if let window = settingsWindow {
             window.makeKeyAndOrderFront(nil)
-            NSApp.activate()
-            // 탭 전환을 위해 뷰 모델을 통해 알림 전달
+            window.orderFrontRegardless()
+            NSApp.activate(ignoringOtherApps: true)
             NotificationCenter.default.post(
                 name: .settingsTabSelected,
                 object: tab
@@ -94,8 +141,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.styleMask = [.titled, .closable]
         window.center()
         window.isReleasedWhenClosed = false
+        window.level = .floating
         window.makeKeyAndOrderFront(nil)
-        NSApp.activate()
+        window.level = .normal
+        NSApp.activate(ignoringOtherApps: true)
 
         self.settingsWindow = window
     }
@@ -114,6 +163,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let displayState: BatteryDisplayState
         if vm.isManaging && vm.batteryState.currentCharge > vm.chargeLimit {
             displayState = .forceDischarging
+        } else if vm.smartChargingStatus.isSmartCharging && vm.batteryState.isCharging {
+            displayState = .smartCharging
         } else if vm.batteryState.isCharging {
             displayState = .charging
         } else if vm.batteryState.isPluggedIn || vm.batteryState.adapterWatts > 0 {
@@ -121,14 +172,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             displayState = .onBattery
         }
-        let iconName = MenuBarIconProvider.iconName(
+        statusItem?.button?.image = MenuBarIconProvider.statusBarImage(
             for: vm.batteryState.currentCharge,
             state: displayState
         )
-        statusItem?.button?.image = NSImage(
-            systemSymbolName: iconName,
-            accessibilityDescription: "BatteryAgent"
-        )
+        if displayState == .smartCharging {
+            statusItem?.button?.contentTintColor = .orange
+        } else {
+            statusItem?.button?.contentTintColor = nil
+        }
         if vm.showPercentage {
             statusItem?.button?.title = " \(vm.batteryState.currentCharge)%"
         } else {
