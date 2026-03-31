@@ -45,6 +45,7 @@
 - [컨벤션](Ref-docs/claude/conventions.md) — 커밋, 주석, 로깅 규칙
 - [셋업](Ref-docs/claude/setup.md) — 새 환경 초기 설정
 - [Agent Delegation](Ref-docs/claude/agent-delegation.md) — 에이전트 위임/파이프라인 상세
+- [배포 로드맵](Ref-docs/claude/distribution-roadmap.md) — Notarization 배포 + 차별화 + App Store 장기 전략
 
 > 프로젝트별 문서를 추가하세요.
 
