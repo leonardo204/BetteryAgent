@@ -66,7 +66,7 @@ struct AITab: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
-                        Text("npm install -g @anthropic-ai/claude-code")
+                        Text("curl -fsSL https://claude.ai/install.sh | sh")
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.orange)
                             .textSelection(.enabled)
@@ -286,7 +286,7 @@ struct AITab: View {
                     1. 터미널에서 'which claude'로 경로 확인
                     2. '찾아보기' 버튼으로 직접 선택
                     3. Claude Code 미설치 시:
-                       npm install -g @anthropic-ai/claude-code
+                       curl -fsSL https://claude.ai/install.sh | sh
                     """
                     errorDetail = detail
                     connectionStatus = .disconnected("실행 파일 없음")
@@ -510,7 +510,7 @@ struct AITab: View {
                 해결 방법:
                 1. Claude Code 재설치:
                    npm uninstall -g @anthropic-ai/claude-code
-                   npm install -g @anthropic-ai/claude-code
+                   curl -fsSL https://claude.ai/install.sh | sh
                 2. Node.js 버전 확인: node --version (18+ 필요)
 
                 원본 에러:
@@ -530,7 +530,7 @@ struct AITab: View {
             해결 방법:
             1. 터미널에서 'claude --version' 실행
             2. 'claude --print -p "hello"' 직접 테스트
-            3. Claude Code 재설치: npm install -g @anthropic-ai/claude-code
+            3. Claude Code 재설치: curl -fsSL https://claude.ai/install.sh | sh
 
             \(errMsg.isEmpty ? "에러 메시지 없음" : "원본 에러:\n\(errMsg)")
             """
@@ -571,7 +571,7 @@ struct AITab: View {
             completion(.failure(NSError(
                 domain: "",
                 code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "claude 명령어를 찾을 수 없습니다.\n설치: npm install -g @anthropic-ai/claude-code"]
+                userInfo: [NSLocalizedDescriptionKey: "claude 명령어를 찾을 수 없습니다.\n설치: curl -fsSL https://claude.ai/install.sh | sh"]
             )))
             return
         }

@@ -76,7 +76,7 @@ open BatteryAgent.xcodeproj
 AI 분석 및 캘린더 이벤트 자동 분류를 사용하려면 Claude Code가 필요합니다.
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | sh
 claude /login    # 키체인에 인증 저장 (환경변수 방식은 이 앱에서 인식 불가)
 ```
 
