@@ -203,19 +203,23 @@ echo ""
 info "Developer ID 서명..."
 APP_PATH="$ARCHIVE_PATH/Products/Applications/$APP_NAME.app"
 
+ENTITLEMENTS_FILE="$PROJECT_ROOT/$APP_NAME/$APP_NAME.entitlements"
+
 if $DRY_RUN; then
-    dry "# archive에서 앱 복사 + Developer ID로 재서명"
+    dry "# archive에서 앱 복사 + Developer ID로 재서명 (entitlements 유지)"
     dry "cp -R '$APP_PATH' '$DMG_STAGING/'"
-    dry "codesign --deep --force --options runtime --sign '$SIGNING_IDENTITY' '$DMG_STAGING/$APP_NAME.app'"
+    dry "codesign --deep --force --options runtime --entitlements '$ENTITLEMENTS_FILE' --sign '$SIGNING_IDENTITY' '$DMG_STAGING/$APP_NAME.app'"
 else
     [ -d "$APP_PATH" ] || error "아카이브 내 앱 없음: $APP_PATH"
+    [ -f "$ENTITLEMENTS_FILE" ] || error "Entitlements 파일 없음: $ENTITLEMENTS_FILE"
 
     # 앱을 DMG 스테이징 복사
     cp -R "$APP_PATH" "$DMG_STAGING/"
 
-    # Developer ID로 재서명 (deep: 내부 바이너리 포함, runtime: Hardened Runtime)
-    info "  Developer ID로 재서명 중..."
+    # Developer ID로 재서명 (entitlements 유지, runtime: Hardened Runtime)
+    info "  Developer ID로 재서명 중 (entitlements: $ENTITLEMENTS_FILE)..."
     codesign --deep --force --options runtime \
+        --entitlements "$ENTITLEMENTS_FILE" \
         --sign "$SIGNING_IDENTITY" \
         "$DMG_STAGING/$APP_NAME.app" \
         || error "Developer ID 서명 실패"
