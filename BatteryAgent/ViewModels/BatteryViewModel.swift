@@ -168,26 +168,30 @@ class BatteryViewModel {
         let daemonRunning = client.isDaemonRunning
 
         if daemonRunning {
-            // 데몬 실행 중 — 버전 비교 후 불일치 시 업데이트
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                guard let self else { return }
+            // 데몬 실행 중 — 버전 비교 후 불일치 시 업데이트 (백그라운드에서 SMC 통신)
+            let bundleVer = client.bundleVersion
+            DispatchQueue.global(qos: .userInitiated).async {
                 let mismatch = client.isHelperVersionMismatch
-                guard mismatch else {
-                    self.logger.info("Daemon is up-to-date (v\(client.bundleVersion))")
-                    return
-                }
                 let installedVer = client.getHelperVersion() ?? "unknown"
-                self.logger.info("Daemon version mismatch: installed=\(installedVer), bundle=\(client.bundleVersion). Updating...")
-                Task { @MainActor in self.isDaemonInstalling = true }
-                client.installDaemon { [weak self] success in
-                    DispatchQueue.main.async {
-                        self?.isDaemonInstalling = false
-                        if success {
-                            self?.logger.info("Daemon updated to v\(client.bundleVersion)")
-                            self?.daemonInstallFailed = false
-                        } else {
-                            self?.logger.error("Daemon update failed")
-                            self?.daemonInstallFailed = true
+
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    guard mismatch else {
+                        self.logger.info("Daemon is up-to-date (v\(bundleVer))")
+                        return
+                    }
+                    self.logger.info("Daemon version mismatch: installed=\(installedVer), bundle=\(bundleVer). Updating...")
+                    self.isDaemonInstalling = true
+                    client.installDaemon { [weak self] success in
+                        DispatchQueue.main.async {
+                            self?.isDaemonInstalling = false
+                            if success {
+                                self?.logger.info("Daemon updated to v\(bundleVer)")
+                                self?.daemonInstallFailed = false
+                            } else {
+                                self?.logger.error("Daemon update failed")
+                                self?.daemonInstallFailed = true
+                            }
                         }
                     }
                 }
