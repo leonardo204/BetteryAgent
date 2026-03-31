@@ -351,6 +351,22 @@ struct AITab: View {
             process.executableURL = URL(fileURLWithPath: path)
             process.arguments = ["--print", "-p", "Reply with only your model name (e.g. claude-opus-4-6)."]
 
+            // GUI 앱에서는 터미널 환경 변수가 없으므로 명시적으로 전달
+            var env = ProcessInfo.processInfo.environment
+            let home = env["HOME"] ?? ""
+            // PATH에 일반적인 경로 추가 (node, claude 등이 위치할 수 있는 경로)
+            let extraPaths = [
+                "\(home)/.local/bin",
+                "\(home)/.nvm/versions/node/*/bin",
+                "/opt/homebrew/bin",
+                "/usr/local/bin",
+                "/usr/bin",
+                "/bin"
+            ]
+            let currentPath = env["PATH"] ?? "/usr/bin:/bin"
+            env["PATH"] = (extraPaths + [currentPath]).joined(separator: ":")
+            process.environment = env
+
             let outPipe = Pipe()
             let errPipe = Pipe()
             process.standardOutput = outPipe
@@ -410,7 +426,7 @@ struct AITab: View {
                     let env = ProcessInfo.processInfo.environment
                     let shellPath = env["SHELL"] ?? "unknown"
                     let hasApiKey = env["ANTHROPIC_API_KEY"] != nil
-                    self.logger.error("checkConnection: failed — exit=\(process.terminationStatus), stderr=\(errMsg.prefix(500), privacy: .public), shell=\(shellPath, privacy: .public), hasApiKey=\(hasApiKey)")
+                    self.logger.error("checkConnection: failed — exit=\(process.terminationStatus), stdout=\(output.prefix(500), privacy: .public), stderr=\(errMsg.prefix(500), privacy: .public), shell=\(shellPath, privacy: .public), hasApiKey=\(hasApiKey)")
                     let combined = errMsg.lowercased()
                     let (reason, detail) = analyzeError(combined: combined, errMsg: errMsg, exitCode: process.terminationStatus)
                     errorDetail = detail
@@ -576,18 +592,22 @@ struct AITab: View {
 
         // 알 수 없는 에러
         return (
-            errMsg.isEmpty ? "알 수 없는 오류 (종료 코드: \(exitCode))" : String(errMsg.prefix(60)),
+            errMsg.isEmpty ? "연결 실패 (종료 코드: \(exitCode))" : String(errMsg.prefix(60)),
             """
-            예기치 않은 오류가 발생했습니다.
+            Claude Code API 연결에 실패했습니다.
 
             종료 코드: \(exitCode)
 
             해결 방법:
-            1. 터미널에서 'claude --version' 실행
+            1. 터미널에서 'claude /login' 실행 (인증 필수)
             2. 'claude --print -p "hello"' 직접 테스트
-            3. Claude Code 재설치: curl -fsSL https://claude.ai/install.sh | sh
+            3. 위 명령이 실패하면 재설치:
+               curl -fsSL https://claude.ai/install.sh | sh
 
-            \(errMsg.isEmpty ? "에러 메시지 없음" : "원본 에러:\n\(errMsg)")
+            💡 GUI 앱은 터미널 환경변수를 공유하지 않습니다.
+               반드시 'claude /login'으로 키체인 인증을 해주세요.
+
+            \(errMsg.isEmpty ? "에러 메시지 없음 (stdout에 원인이 있을 수 있음)" : "원본 에러:\n\(errMsg)")
             """
         )
     }
@@ -635,6 +655,14 @@ struct AITab: View {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
             process.arguments = ["--print", "-p", prompt]
+
+            // GUI 앱 환경 변수 보완
+            var env = ProcessInfo.processInfo.environment
+            let home = env["HOME"] ?? ""
+            let extraPaths = ["\(home)/.local/bin", "/opt/homebrew/bin", "/usr/local/bin"]
+            let currentPath = env["PATH"] ?? "/usr/bin:/bin"
+            env["PATH"] = (extraPaths + [currentPath]).joined(separator: ":")
+            process.environment = env
 
             let outPipe = Pipe()
             let errPipe = Pipe()
