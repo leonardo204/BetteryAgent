@@ -310,7 +310,7 @@ final class CalendarMonitor {
         let needsLaptop: Bool
     }
 
-    private static func parseClassificationResponse(_ text: String) -> [ClassificationResult]? {
+    nonisolated private static func parseClassificationResponse(_ text: String) -> [ClassificationResult]? {
         // JSON 배열 추출
         let patterns = ["```json\\s*([\\s\\S]*?)```", "```\\s*([\\s\\S]*?)```", "(\\[[\\s\\S]*\\])"]
         for pattern in patterns {
