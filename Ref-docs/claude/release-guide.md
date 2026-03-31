@@ -179,6 +179,8 @@ sudo rm -f /tmp/BatteryAgentHelper.sock
 | 암호 여러 번 요청 | sendCommand 내부 재설치 (v1.5.1에서 수정) | v1.5.2 이상으로 업데이트 |
 | Sparkle 업데이트 → GitHub 열림 | Sparkle 미링크 (v1.5.3에서 수정) | Frameworks Build Phase에 Sparkle 확인 |
 | 캘린더 토글 ON → 바로 OFF | 릴리스 빌드 entitlements 누락 (v1.5.7에서 수정) | release.sh의 `--entitlements` 플래그 확인 |
+| Claude 연결 실패 (stderr 비어있음) | GUI 앱 환경변수 누락 (v1.6.0에서 수정) | Process에 PATH 전달 확인, `claude /login` 안내 |
+| 로그에 `<private>` 표시 | os.log 기본 마스킹 (v1.5.9에서 수정) | `privacy: .public` 적용 확인 |
 | 공증 실패 | Hardened Runtime 미활성 | project.pbxproj `ENABLE_HARDENED_RUNTIME = YES` 확인 |
 
 ---
@@ -197,3 +199,6 @@ sudo rm -f /tmp/BatteryAgentHelper.sock
 | v1.5.5 | 2026-03-31 | 캘린더 권한 요청 대기 시간 증가 |
 | v1.5.6 | 2026-03-31 | 캘린더 TCC 자동 리셋 (헬퍼 경유) |
 | v1.5.7 | 2026-03-31 | 릴리스 빌드 entitlements 누락 수정 (근본 원인) |
+| v1.5.8 | 2026-03-31 | Claude Code 설치 안내 공식 스크립트로 변경 |
+| v1.5.9 | 2026-03-31 | Claude 연결 진단 로그 강화 + 마스킹 해제 |
+| v1.6.0 | 2026-03-31 | Claude 환경 변수 전달 + 에러 안내 개선 |
