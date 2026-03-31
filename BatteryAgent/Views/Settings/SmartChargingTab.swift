@@ -6,6 +6,7 @@ struct SmartChargingTab: View {
     @State private var showResetAlert = false
     @State private var showAddRuleSheet = false
     @State private var showChargingReport = false
+    @State private var showCalendarPermissionAlert = false
     @State private var editingRule: ChargeRule? = nil
     @State private var defaultLeadMinutes: Int = {
         let v = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKey.defaultLeadMinutes)
@@ -128,7 +129,7 @@ struct SmartChargingTab: View {
                             viewModel.toggleCalendarIntegration(false)
                             return
                         }
-                        // ON → 권한 요청 → 거부 시 토글 OFF
+                        // ON → 권한 요청 → 거부 시 시스템 설정 안내
                         Task {
                             let granted = await viewModel.calendarMonitor.requestAccess()
                             if granted {
@@ -136,6 +137,7 @@ struct SmartChargingTab: View {
                                 viewModel.syncSmartChargingStatus()
                             } else {
                                 calendarEnabled = false
+                                showCalendarPermissionAlert = true
                             }
                         }
                     }
@@ -250,6 +252,16 @@ struct SmartChargingTab: View {
             ) { updatedRule in
                 viewModel.saveChargeRule(updatedRule)
             }
+        }
+        .alert("캘린더 접근 권한 필요", isPresented: $showCalendarPermissionAlert) {
+            Button("시스템 설정 열기") {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            Button("취소", role: .cancel) {}
+        } message: {
+            Text("캘린더 이벤트 기반 충전을 사용하려면 시스템 설정 > 개인정보 보호 및 보안 > 캘린더에서 BatteryAgent를 허용해주세요.")
         }
     }
 

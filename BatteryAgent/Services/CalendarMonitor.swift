@@ -43,20 +43,27 @@ final class CalendarMonitor {
 
     func requestAccess() async -> Bool {
         let status = authorizationStatus
-        logger.info("Calendar authorization status: \(String(describing: status))")
+        logger.info("Calendar requestAccess — status: \(status.rawValue) (0=notDetermined, 1=restricted, 2=denied, 3=fullAccess, 4=writeOnly)")
 
         switch status {
         case .fullAccess:
             isAuthorized = true
+            logger.info("Calendar: already fullAccess → granted")
             return true
+        case .writeOnly:
+            // writeOnly는 읽기 권한이 없으므로 fullAccess 요청
+            logger.info("Calendar: writeOnly → requesting fullAccess")
+            return await requestWithActivation()
         case .denied, .restricted:
+            logger.warning("Calendar: denied/restricted → opening System Settings")
             isAuthorized = false
             return false
         case .notDetermined:
+            logger.info("Calendar: notDetermined → requesting access")
             return await requestWithActivation()
         @unknown default:
-            isAuthorized = false
-            return false
+            logger.warning("Calendar: unknown status \(status.rawValue) → trying requestAccess anyway")
+            return await requestWithActivation()
         }
     }
 

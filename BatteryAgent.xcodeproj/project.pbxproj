@@ -456,7 +456,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.3\nCFBundleVersion=10\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.4\nCFBundleVersion=11\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -536,7 +536,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.3\nCFBundleVersion=10\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.4\nCFBundleVersion=11\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
