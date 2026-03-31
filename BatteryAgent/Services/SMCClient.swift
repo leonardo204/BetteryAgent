@@ -60,6 +60,11 @@ final class SMCClient: Sendable {
         sendCommand(cmd, completion: completion)
     }
 
+    /// 캘린더 TCC 권한을 리셋한다 (root 헬퍼 경유).
+    func resetCalendarPermission(completion: @escaping @Sendable (Bool) -> Void) {
+        sendCommand("reset-calendar-permission", completion: completion)
+    }
+
     /// 설치된 헬퍼 데몬의 버전 문자열을 반환한다. 데몬이 응답하지 않으면 nil.
     func getHelperVersion() -> String? {
         guard let response = sendViaSocket("version"),

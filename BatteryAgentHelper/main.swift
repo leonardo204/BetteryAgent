@@ -4,7 +4,7 @@ import Foundation
 // Runs as root LaunchDaemon, listens for commands via Unix socket
 
 let socketPath = "/tmp/BatteryAgentHelper.sock"
-let helperVersion = "1.5.5"
+let helperVersion = "1.5.6"
 
 func main() -> Int32 {
     guard CommandLine.arguments.count >= 2 else {
@@ -204,6 +204,15 @@ func runDaemon() -> Int32 {
                 response = "OK pong"
             case "version":
                 response = "OK \(helperVersion)"
+            case "reset-calendar-permission":
+                let task = Process()
+                task.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
+                task.arguments = ["reset", "Calendar", "com.zerolive.BatteryAgent"]
+                task.standardOutput = FileHandle.nullDevice
+                task.standardError = FileHandle.nullDevice
+                try? task.run()
+                task.waitUntilExit()
+                response = task.terminationStatus == 0 ? "OK calendar permission reset" : "ERROR tccutil failed"
             default:
                 response = "ERROR unknown command"
             }

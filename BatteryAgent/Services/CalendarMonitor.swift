@@ -90,6 +90,22 @@ final class CalendarMonitor {
             let granted = try await eventStore.requestFullAccessToEvents()
             isAuthorized = granted
             logger.info("Calendar access result: \(granted)")
+
+            if !granted {
+                // notDetermined인데 false → TCC 캐시 문제일 수 있음. 리셋 후 재시도
+                logger.info("Calendar: access denied despite notDetermined — resetting TCC and retrying")
+                await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+                    SMCClient.shared.resetCalendarPermission { _ in cont.resume() }
+                }
+                // 새 EKEventStore로 재시도 (기존 인스턴스는 캐시된 상태를 가짐)
+                let freshStore = EKEventStore()
+                let retryGranted = try await freshStore.requestFullAccessToEvents()
+                isAuthorized = retryGranted
+                logger.info("Calendar retry result: \(retryGranted)")
+                if needsPolicySwitch { restoreAccessoryPolicy() }
+                return retryGranted
+            }
+
             if needsPolicySwitch { restoreAccessoryPolicy() }
             return granted
         } catch {
