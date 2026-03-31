@@ -126,6 +126,10 @@ class BatteryViewModel {
 
         Task {
             await NotificationManager.shared.requestAuthorization()
+            if isCalendarIntegrationEnabled {
+                let granted = await calendarMonitor.requestAccess()
+                if granted { syncSmartChargingStatus() }
+            }
         }
     }
 
@@ -375,10 +379,16 @@ class BatteryViewModel {
             smcClient.disableCharging { _ in }
             smcClient.setForceDischarge(false) { _ in }
         } else if charge < effectiveLimit && pluggedIn {
-            if charge < effectiveRechargeThreshold {
-                logger.info("Charge \(charge)% < \(self.effectiveRechargeThreshold)%, re-enabling charging")
-                smcClient.enableCharging { _ in }
-                hasNotifiedCompletion = false
+            // 히스테리시스는 limit 도달 후 차단된 상태에서만 적용
+            // 새로 전원 연결 시(hasNotifiedCompletion=false)에는 바로 충전
+            if charge < effectiveRechargeThreshold || !hasNotifiedCompletion {
+                if !batteryState.isCharging {
+                    logger.info("Charge \(charge)% < effectiveLimit \(effectiveLimit)%, enabling charging (rechargeThreshold=\(self.effectiveRechargeThreshold), wasLimited=\(self.hasNotifiedCompletion))")
+                    smcClient.enableCharging { _ in }
+                }
+                if charge < effectiveRechargeThreshold {
+                    hasNotifiedCompletion = false
+                }
             }
             smcClient.setForceDischarge(false) { _ in }
         }
