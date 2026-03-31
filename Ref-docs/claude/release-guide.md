@@ -178,6 +178,7 @@ sudo rm -f /tmp/BatteryAgentHelper.sock
 | 헬퍼 설치 배너 계속 표시 | 데몬 소켓 없음 | `sudo launchctl bootstrap system ...` 또는 앱에서 "설치" 클릭 |
 | 암호 여러 번 요청 | sendCommand 내부 재설치 (v1.5.1에서 수정) | v1.5.2 이상으로 업데이트 |
 | Sparkle 업데이트 → GitHub 열림 | Sparkle 미링크 (v1.5.3에서 수정) | Frameworks Build Phase에 Sparkle 확인 |
+| 캘린더 토글 ON → 바로 OFF | 릴리스 빌드 entitlements 누락 (v1.5.7에서 수정) | release.sh의 `--entitlements` 플래그 확인 |
 | 공증 실패 | Hardened Runtime 미활성 | project.pbxproj `ENABLE_HARDENED_RUNTIME = YES` 확인 |
 
 ---
@@ -192,3 +193,7 @@ sudo rm -f /tmp/BatteryAgentHelper.sock
 | v1.5.1 | 2026-03-31 | 반복 암호 요청 수정 |
 | v1.5.2 | 2026-03-31 | launchctl bootstrap, 버전 비교 수정 |
 | v1.5.3 | 2026-03-31 | Sparkle 링크 수정, 캘린더 권한 즉시 반영 |
+| v1.5.4 | 2026-03-31 | 캘린더 권한 진단 로그 + writeOnly 처리 |
+| v1.5.5 | 2026-03-31 | 캘린더 권한 요청 대기 시간 증가 |
+| v1.5.6 | 2026-03-31 | 캘린더 TCC 자동 리셋 (헬퍼 경유) |
+| v1.5.7 | 2026-03-31 | 릴리스 빌드 entitlements 누락 수정 (근본 원인) |

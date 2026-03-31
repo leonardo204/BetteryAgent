@@ -83,7 +83,7 @@
 - [x] appcast.xml — v1.4.0 피드 생성
 - [x] Info.plist에 SUFeedURL 추가
 - [x] Sparkle SPM 추가 완료 (2.9.1)
-- [ ] EdDSA 키 생성 (`generate_keys`) + DMG 서명 (`sign_update`) — 릴리스 시
+- [x] EdDSA 키 생성 + DMG 서명 (v1.5.0 이후 모든 릴리스 서명 완료)
 
 ### Step 2.6 — 다국어 지원 ✅
 - [x] 영어 로컬라이제이션 (en.lproj/Localizable.strings)
@@ -160,5 +160,5 @@
 ---
 
 *Phase 1: 완료 (2026-03-31) — v1.4.0 릴리스, 전 Step 완료*
-*Phase 2: 완료 (2026-03-31) — 중국어 로컬라이제이션, EdDSA 서명만 잔여*
+*Phase 2: 거의 완료 (2026-03-31) — 중국어 로컬라이제이션만 잔여*
 *Phase 3: Apple API 공개 시점에 따라 유동적*
