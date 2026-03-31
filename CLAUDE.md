@@ -46,6 +46,7 @@
 - [셋업](Ref-docs/claude/setup.md) — 새 환경 초기 설정
 - [Agent Delegation](Ref-docs/claude/agent-delegation.md) — 에이전트 위임/파이프라인 상세
 - [배포 로드맵](Ref-docs/claude/distribution-roadmap.md) — Notarization 배포 + 차별화 + App Store 장기 전략
+- [릴리스 가이드](Ref-docs/claude/release-guide.md) — 버전 관리, 빌드/서명/공증, Sparkle 업데이트, 헬퍼 데몬
 
 > 프로젝트별 문서를 추가하세요.
 
