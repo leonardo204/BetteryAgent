@@ -1,7 +1,9 @@
 import SwiftUI
+import os.log
 
 struct AITab: View {
     @Bindable var viewModel: BatteryViewModel
+    private let logger = Logger(subsystem: "com.zerolive.BatteryAgent", category: "AITab")
 
     enum ConnectionStatus {
         case unknown, checking, connected(String), disconnected(String)
@@ -261,14 +263,19 @@ struct AITab: View {
     }
 
     private func checkConnection() {
-        guard let path = claudePath else { return }
+        guard let path = claudePath else {
+            logger.warning("checkConnection: claudePath is nil")
+            return
+        }
+        logger.info("checkConnection: starting with path=\(path)")
         isCheckingConnection = true
         connectionStatus = .checking
 
         DispatchQueue.global(qos: .utility).async {
             // 1단계: 파일 존재 및 실행 가능 여부
             guard FileManager.default.isExecutableFile(atPath: path) else {
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [self] in
+                    logger.warning("checkConnection: file not executable at \(path)")
                     isCheckingConnection = false
                     let detail = """
                     Claude Code 실행 파일을 찾을 수 없습니다.
@@ -320,6 +327,7 @@ struct AITab: View {
                     isCheckingConnection = false
 
                     if timedOut {
+                        self.logger.error("checkConnection: timed out (30s)")
                         errorDetail = """
                         연결 시간 초과 (30초)
 
@@ -339,6 +347,7 @@ struct AITab: View {
 
                     if process.terminationStatus == 0 {
                         let modelName = output.isEmpty ? "claude" : output.components(separatedBy: .newlines).last ?? "claude"
+                        self.logger.info("checkConnection: success — model=\(modelName)")
                         connectionStatus = .connected(modelName)
                         // 성공한 경로 저장
                         UserDefaults.standard.set(path, forKey: "claudeCodePath")
@@ -346,6 +355,7 @@ struct AITab: View {
                     }
 
                     // 에러 분석
+                    self.logger.error("checkConnection: failed — exit=\(process.terminationStatus), stderr=\(errMsg.prefix(200))")
                     let combined = errMsg.lowercased()
                     let (reason, detail) = analyzeError(combined: combined, errMsg: errMsg, exitCode: process.terminationStatus)
                     errorDetail = detail
@@ -531,6 +541,7 @@ struct AITab: View {
 
     private func findClaudePath() -> String? {
         let home = ProcessInfo.processInfo.environment["HOME"] ?? ""
+        logger.info("findClaudePath: HOME=\(home)")
         let candidates = [
             home + "/.local/bin/claude",
             "/opt/homebrew/bin/claude",
@@ -545,7 +556,12 @@ struct AITab: View {
                 if FileManager.default.isExecutableFile(atPath: full) { return full }
             }
         }
-        return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
+        if let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
+            logger.info("findClaudePath: found at \(found)")
+            return found
+        }
+        logger.warning("findClaudePath: not found in any candidate path")
+        return nil
     }
 
     // MARK: - Process 실행
