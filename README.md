@@ -9,9 +9,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/leonardo204/BetteryAgent/releases/latest">
+    <img src="https://img.shields.io/github/v/release/leonardo204/BetteryAgent?label=Download&color=brightgreen" alt="Latest Release">
+  </a>
   <img src="https://img.shields.io/badge/macOS-14.0%2B-blue" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Swift-6.0-orange" alt="Swift 6">
-  <img src="https://img.shields.io/badge/version-1.3.0-green" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="MIT License">
 </p>
 
 ---
@@ -32,9 +35,14 @@
 
 ## 설치
 
-### DMG 다운로드
+### DMG 다운로드 (권장)
 
-[Releases](https://github.com/leonardo204/BetteryAgent/releases)에서 최신 DMG를 다운로드하여 Applications 폴더로 드래그합니다.
+1. [최신 릴리스](https://github.com/leonardo204/BetteryAgent/releases/latest)에서 `BatteryAgent-x.x.x.dmg`를 다운로드합니다.
+2. DMG 파일을 열고 `BatteryAgent.app`을 **Applications** 폴더로 드래그합니다.
+3. Launchpad 또는 Applications 폴더에서 BatteryAgent를 실행합니다.
+4. 최초 실행 시 헬퍼 설치를 위해 **관리자 비밀번호**를 입력합니다 (충전 제어 권한 획득, 최초 1회).
+
+> Apple 공증(Notarization)이 완료된 빌드이므로 Gatekeeper 경고 없이 실행됩니다.
 
 ### 빌드
 
