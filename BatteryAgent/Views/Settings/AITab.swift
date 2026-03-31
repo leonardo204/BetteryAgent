@@ -34,6 +34,7 @@ struct AITab: View {
     @State private var isAnalyzing = false
     @State private var report = ""
     @State private var isCopied = false
+    @State private var showReportSheet = false
 
     struct AppliedSettings { var chargeLimit: Int }
     @State private var appliedSettings: AppliedSettings? = nil
@@ -137,7 +138,7 @@ struct AITab: View {
                 .disabled(isCheckingConnection || claudePath == nil)
             }
 
-            Section("AI 자동 설정") {
+            Section("AI 분석 및 자동 설정") {
                 Button {
                     requestAnalysis()
                 } label: {
@@ -148,7 +149,7 @@ struct AITab: View {
                             Text("Claude 분석 중...")
                         } else {
                             Image(systemName: "brain")
-                            Text("AI 자동 설정")
+                            Text("AI 분석 및 자동 설정")
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -156,36 +157,29 @@ struct AITab: View {
                 .controlSize(.large)
                 .disabled(isAnalyzing || claudePath == nil || !isConnected)
 
-                if !report.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("분석 결과")
-                            .font(.caption.bold())
-                        ScrollView {
-                            Text(report)
-                                .font(.caption)
-                                .foregroundStyle(.primary)
-                                .textSelection(.enabled)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .frame(maxHeight: 120)
-                        .padding(8)
-                        .background(Color.black.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                Text("배터리 상태와 스마트 충전 학습 현황을 분석합니다. 설정이 필요하면 자동 적용하고, 이미 최적이면 분석 리포트만 제공합니다.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
 
+                if !report.isEmpty {
+                    Button {
+                        showReportSheet = true
+                    } label: {
                         HStack {
+                            Image(systemName: "doc.text.magnifyingglass")
+                            Text("분석 결과 보기")
+                            Spacer()
                             if let applied = appliedSettings {
-                                Text("충전 제한 \(applied.chargeLimit)% 적용됨")
+                                Text("제한 \(applied.chargeLimit)% 적용됨")
                                     .font(.caption)
                                     .foregroundStyle(.green)
                             }
-                            Spacer()
-                            Button {
-                                copyReport()
-                            } label: {
-                                Label(isCopied ? "복사됨" : "복사", systemImage: isCopied ? "checkmark" : "doc.on.doc")
-                            }
-                            .controlSize(.small)
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
                         }
                     }
+                    .buttonStyle(.plain)
                 }
             }
 
@@ -210,6 +204,14 @@ struct AITab: View {
             }
         } message: {
             Text(errorDetail)
+        }
+        .sheet(isPresented: $showReportSheet) {
+            AIReportSheet(
+                report: report,
+                appliedSettings: appliedSettings,
+                batteryState: viewModel.batteryState,
+                smartChargingStatus: viewModel.smartChargingStatus
+            )
         }
     }
 
@@ -596,8 +598,39 @@ struct AITab: View {
 
     private func buildPrompt() -> String {
         let s = viewModel.batteryState
+        let sc = viewModel.smartChargingStatus
+        let patterns = sc.detectedPatterns
+        let patternSummary: String
+        if patterns.isEmpty {
+            patternSummary = "감지된 패턴 없음"
+        } else {
+            patternSummary = patterns.map { p in
+                let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
+                let day = dayNames[(p.dayOfWeek - 1) % 7]
+                let startH = p.startSlot / 2
+                let startM = (p.startSlot % 2) * 30
+                let endH = p.endSlot / 2
+                let endM = (p.endSlot % 2) * 30
+                return "\(day)요일 \(String(format: "%02d:%02d", startH, startM))~\(String(format: "%02d:%02d", endH, endM)) (신뢰도 \(Int(p.confidence * 100))%, \(p.active ? "활성" : "비활성"))"
+            }.joined(separator: "\n    ")
+        }
+
+        let calendarInfo: String
+        if sc.calendarEnabled {
+            if let next = sc.nextCalendarEvent {
+                let fmt = DateFormatter()
+                fmt.dateFormat = "M/d HH:mm"
+                calendarInfo = "활성 (다음 이벤트: \(fmt.string(from: next)))"
+            } else {
+                calendarInfo = "활성 (예정 이벤트 없음)"
+            }
+        } else {
+            calendarInfo = "비활성"
+        }
+
         return """
-        다음 맥북 배터리 상태를 분석하고 최적 충전 설정을 추천해주세요.
+        다음 맥북 배터리 상태와 스마트 충전 학습 현황을 분석하고, 최적 충전 설정을 추천해주세요.
+        현재 설정이 이미 최적이면 변경하지 말고 분석 리포트만 작성하세요.
 
         ## 배터리 현재 상태
         {
@@ -621,13 +654,28 @@ struct AITab: View {
           "rechargeMode": "\(viewModel.rechargeMode == .smart ? "smart" : "manual")"
         }
 
+        ## 스마트 충전 학습 현황
+        {
+          "smartChargingEnabled": \(sc.isEnabled),
+          "isSmartCharging": \(sc.isSmartCharging),
+          "smartChargingReason": "\(sc.smartChargingReason)",
+          "learningDays": \(sc.learningDays),
+          "learningComplete": \(sc.isLearningComplete),
+          "learningProgress": "\(Int(sc.learningProgress * 100))%",
+          "detectedPatterns": \(patterns.count),
+          "calendarIntegration": "\(calendarInfo)"
+        }
+
+        ## 감지된 사용 패턴
+        \(patternSummary)
+
         반드시 아래 JSON 형식으로만 응답하세요 (설명 없이 JSON만):
         {
           "chargeLimit": 80,
           "dischargeFloor": 20,
           "isManaging": true,
           "rechargeMode": "smart",
-          "report": "분석 내용과 추천 이유를 한국어로 작성"
+          "report": "아래 항목을 포함하여 한국어로 작성:\\n1. 배터리 건강 상태 분석\\n2. 충전 설정 추천 (변경 시 이유, 최적이면 유지 이유)\\n3. 스마트 충전 학습 상태 (학습 중이면 예상 완료일, 완료면 감지된 패턴 요약과 충전 예정 시점)\\n4. 캘린더 연동 상태\\n5. 종합 권장사항"
         }
         """
     }
@@ -680,6 +728,7 @@ struct AITab: View {
                     } else {
                         report = output
                     }
+                    showReportSheet = true
                 case .failure(let error):
                     report = "오류: \(error.localizedDescription)"
                 }
@@ -696,5 +745,138 @@ struct AITab: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             isCopied = false
         }
+    }
+}
+
+// MARK: - AI Report Sheet
+
+struct AIReportSheet: View {
+    let report: String
+    let appliedSettings: AITab.AppliedSettings?
+    let batteryState: BatteryState
+    let smartChargingStatus: SmartChargingStatus
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var isCopied = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Image(systemName: "brain")
+                    .font(.title2)
+                    .foregroundStyle(.purple)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("AI 분석 리포트")
+                        .font(.headline)
+                    Text(Date(), style: .date)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding()
+
+            Divider()
+
+            // Status Cards
+            HStack(spacing: 12) {
+                StatusCard(
+                    icon: "heart.fill",
+                    color: batteryState.healthPercentage >= 80 ? .green : .orange,
+                    title: "배터리 건강",
+                    value: "\(batteryState.healthPercentage)%"
+                )
+                StatusCard(
+                    icon: "bolt.fill",
+                    color: appliedSettings != nil ? .green : .blue,
+                    title: "충전 제한",
+                    value: appliedSettings != nil ? "\(appliedSettings!.chargeLimit)% 적용" : "변경 없음"
+                )
+                StatusCard(
+                    icon: "brain.head.profile",
+                    color: smartChargingStatus.isEnabled ? .purple : .gray,
+                    title: "스마트 충전",
+                    value: smartChargingStatus.isLearningComplete
+                        ? "패턴 \(smartChargingStatus.detectedPatterns.count)개"
+                        : "학습 \(smartChargingStatus.learningDays)/14일"
+                )
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+
+            Divider()
+
+            // Report Body
+            ScrollView {
+                Text(report)
+                    .font(.system(.body, design: .rounded))
+                    .lineSpacing(4)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+            }
+
+            Divider()
+
+            // Footer
+            HStack {
+                if let applied = appliedSettings {
+                    Label("충전 제한 \(applied.chargeLimit)% 자동 적용됨", systemImage: "checkmark.seal.fill")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                } else {
+                    Label("현재 설정 유지 (변경 불필요)", systemImage: "checkmark.circle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(report, forType: .string)
+                    isCopied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { isCopied = false }
+                } label: {
+                    Label(isCopied ? "복사됨" : "복사", systemImage: isCopied ? "checkmark" : "doc.on.doc")
+                }
+                .controlSize(.small)
+
+                Button("닫기") { dismiss() }
+                    .controlSize(.small)
+            }
+            .padding()
+        }
+        .frame(width: 480, height: 520)
+    }
+}
+
+// MARK: - Status Card
+
+private struct StatusCard: View {
+    let icon: String
+    let color: Color
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(color)
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.caption.bold())
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
     }
 }
