@@ -8,6 +8,27 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.6.2</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.6.2</link>
+      <sparkle:version>19</sparkle:version>
+      <sparkle:shortVersionString>1.6.2</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.6.2 — 크래시 수정</h2>
+        <ul>
+          <li>앱 시작 후 크래시 수정 (@MainActor 격리 위반 완전 제거)</li>
+        </ul>
+      ]]></description>
+      <pubDate>Tue, 01 Apr 2026 02:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.6.2/BatteryAgent-v1.6.2.dmg"
+        sparkle:edSignature="QEWbk8syAb4eSJir9i53II41zj93m7bqCw5X/ErOf61HqTGmuHKw3Ed0pL75VtY49APwZmfcqlaYAII5My8GCg=="
+        length="2453761"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.6.1</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.6.1</link>
       <sparkle:version>18</sparkle:version>
