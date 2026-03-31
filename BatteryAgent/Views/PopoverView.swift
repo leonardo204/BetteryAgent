@@ -156,6 +156,7 @@ struct PopoverView: View {
     }
 
     private var statusColor: Color {
+        if viewModel.isThermalThrottled { return .red }
         if !isPlugged && !viewModel.batteryState.isCharging { return .secondary }
         if isOverLimit { return .orange }
         if viewModel.batteryState.isCharging { return .green }
@@ -164,6 +165,9 @@ struct PopoverView: View {
     }
 
     private var statusText: String {
+        if viewModel.isThermalThrottled {
+            return String(format: "온도 보호 중 (%.1f°C)", viewModel.batteryState.temperature)
+        }
         if !isPlugged && !viewModel.batteryState.isCharging {
             return "배터리 사용 중"
         }

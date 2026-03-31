@@ -10,11 +10,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var iconUpdateTimer: Timer?
     private var eventMonitor: Any?
     private var localKeyMonitor: Any?
+    private var updateChecker: UpdateChecker?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         let vm = BatteryViewModel()
         self.viewModel = vm
+        updateChecker = UpdateChecker()
         setupStatusItem()
         setupPopover(viewModel: vm)
         startIconUpdates()

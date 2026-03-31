@@ -1,0 +1,25 @@
+/* PopoverView status text */
+"충전 중" = "Charging";
+"배터리 사용 중" = "On Battery";
+"충전 차단 중 → %d%%까지 대기" = "Charge blocked → waiting for %d%%";
+"제한 유지 중" = "Holding at limit";
+"전원 연결됨" = "Power connected";
+"온도 보호 중" = "Thermal protection";
+"충전 제어를 위해 헬퍼 설치가 필요합니다" = "Helper installation required for charge control";
+
+/* Settings tab titles */
+"충전 제어" = "Charge Control";
+"스마트 충전" = "Smart Charging";
+"이력" = "History";
+"AI" = "AI";
+"일반" = "General";
+
+/* ChargeControlTab */
+"충전 제한" = "Charge Limit";
+"방전 하한" = "Discharge Floor";
+"열 보호" = "Thermal Protection";
+"온도 기반 충전 보호" = "Temperature-based charge protection";
+
+/* SmartChargingTab */
+"자동 패턴 학습" = "Auto Pattern Learning";
+"캘린더 연동" = "Calendar Integration";

@@ -628,6 +628,33 @@ struct AITab: View {
             calendarInfo = "비활성"
         }
 
+        // 최근 7일 충전 이력 통계
+        let weekly = viewModel.chargeHistory.loadWeeklyStats()
+        let chargingHours = weekly.totalChargingMinutes / 60
+        let chargingMins = weekly.totalChargingMinutes % 60
+        let weeklyStatsSummary = """
+        {
+          "avgChargeLevel": "\(String(format: "%.1f", weekly.avgChargeLevel))%",
+          "totalChargingTime": "\(chargingHours)시간 \(chargingMins)분",
+          "plugInCount": \(weekly.plugInCount),
+          "chargeDisconnectCount": \(weekly.chargeDisconnectCount)
+        }
+        """
+
+        // 배터리 수명 추정 (사이클 수 + 건강도 기반)
+        let lossRatio = s.designCapacity > 0
+            ? Double(s.designCapacity - s.maxCapacity) / Double(s.designCapacity)
+            : 0.0
+        let capacityLossPerCycle = s.cycleCount > 0 ? lossRatio / Double(s.cycleCount) : 0.0
+        let remainingCycles: String
+        if capacityLossPerCycle > 0 {
+            // 건강도 20% 기준으로 남은 사이클 추정
+            let remaining = Int((lossRatio < 0.8 ? (0.8 - lossRatio) / capacityLossPerCycle : 0))
+            remainingCycles = "\(remaining)회"
+        } else {
+            remainingCycles = "계산 불가 (데이터 부족)"
+        }
+
         return """
         다음 맥북 배터리 상태와 스마트 충전 학습 현황을 분석하고, 최적 충전 설정을 추천해주세요.
         현재 설정이 이미 최적이면 변경하지 말고 분석 리포트만 작성하세요.
@@ -643,7 +670,8 @@ struct AITab: View {
           "maxCapacity": \(s.maxCapacity),
           "temperature": \(String(format: "%.1f", s.temperature)),
           "voltage": \(String(format: "%.3f", s.voltage)),
-          "adapterWatts": \(s.adapterWatts)
+          "adapterWatts": \(s.adapterWatts),
+          "estimatedRemainingCycles": "\(remainingCycles)"
         }
 
         ## 현재 설정
@@ -666,6 +694,9 @@ struct AITab: View {
           "calendarIntegration": "\(calendarInfo)"
         }
 
+        ## 최근 7일 충전 이력 통계
+        \(weeklyStatsSummary)
+
         ## 감지된 사용 패턴
         \(patternSummary)
 
@@ -675,7 +706,7 @@ struct AITab: View {
           "dischargeFloor": 20,
           "isManaging": true,
           "rechargeMode": "smart",
-          "report": "아래 항목을 포함하여 한국어로 작성:\\n1. 배터리 건강 상태 분석\\n2. 충전 설정 추천 (변경 시 이유, 최적이면 유지 이유)\\n3. 스마트 충전 학습 상태 (학습 중이면 예상 완료일, 완료면 감지된 패턴 요약과 충전 예정 시점)\\n4. 캘린더 연동 상태\\n5. 종합 권장사항"
+          "report": "아래 항목을 포함하여 한국어로 작성:\\n1. 배터리 건강 상태 분석\\n2. 충전 설정 추천 (변경 시 이유, 최적이면 유지 이유)\\n3. 스마트 충전 학습 상태 (학습 중이면 예상 완료일, 완료면 감지된 패턴 요약과 충전 예정 시점)\\n4. 캘린더 연동 상태\\n5. 종합 권장사항\\n6. 배터리 수명 예측 (현재 사이클 수와 건강도 기반, 예상 남은 수명)\\n7. 충전 습관 개선 제안 (현재 패턴 분석 기반)"
         }
         """
     }

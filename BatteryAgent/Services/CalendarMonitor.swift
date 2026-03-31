@@ -320,6 +320,32 @@ final class CalendarMonitor {
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
+    // MARK: - All-Day Event Check
+
+    /// 오늘 날짜에 종일 이벤트가 하나라도 있으면 true 반환
+    /// 공휴일/휴가 등 비정상적 패턴 날에 학습된 패턴 무시에 사용
+    func hasAllDayEventToday() -> Bool {
+        guard isAuthorized || authorizationStatus == .fullAccess else { return false }
+
+        let calendar = Calendar.current
+        let today = Date()
+        let startOfDay = calendar.startOfDay(for: today)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return false }
+
+        let predicate = eventStore.predicateForEvents(
+            withStart: startOfDay,
+            end: endOfDay,
+            calendars: nil
+        )
+
+        let events = eventStore.events(matching: predicate)
+        let hasAllDay = events.contains { $0.isAllDay }
+        if hasAllDay {
+            logger.info("All-day event detected today — learned patterns will be skipped")
+        }
+        return hasAllDay
+    }
+
     // MARK: - Pre-charge Decision
 
     func shouldPreCharge(leadMinutes: Int) -> Date? {

@@ -14,7 +14,6 @@
 		5619DFA264D036F152C51769 /* BatteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF09DC63E29E5B6EAE9E12BC /* BatteryViewModel.swift */; };
 		5655910CA6F078BC492679F2 /* ChargePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6258232C9DFCD229AC0490BC /* ChargePolicy.swift */; };
 		566507F1AD93E11FECCD0BC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F24B6777EDE470390CCBF710 /* Assets.xcassets */; };
-		A2B3C4D5E6F7081929304A5B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */; };
 		5B361204116A8E70223E3858 /* ChargeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC545DDCCFF765E570E20A5E /* ChargeRecord.swift */; };
 		695D1B459ED587A5BBB4AA8A /* ChargeHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E702EA1B8152865FA64B11A /* ChargeHistoryStore.swift */; };
 		6DA34DB8E45FFA93C503690A /* BatteryAgentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5406AD53FA11283B14A951DD /* BatteryAgentApp.swift */; };
@@ -25,6 +24,11 @@
 		97586BDBF5C4517D7E709E1B /* SettingsContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D4313194E5C6008E8A953 /* SettingsContainerView.swift */; };
 		99F6D0D7084F73F9459628F5 /* BatteryInfoTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68AEC5645976F2889736FC45 /* BatteryInfoTab.swift */; };
 		9D3DAA36C42B8144F42F47BC /* SmartChargeScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA690E7D2D6718AC3713A4E /* SmartChargeScheduler.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* CalendarMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5061728394A5B6C /* CalendarMonitor.swift */; };
+		A2B3C4D5E6F7081929304A5B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */; };
+		AA001122BB334455CC6677BB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = AA001122BB334455CC6677AA /* Localizable.strings */; };
+		AA11BB22CC33DD44EE55FF66 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF6600AA /* UpdateChecker.swift */; };
+		AA1234567890ABCDEF123456 /* SmartChargingReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1234567890ABCDEF123456 /* SmartChargingReportView.swift */; };
 		AC2FABE3A0E04467CF46ACF5 /* ChargeControlTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD81AF87E7D7A0D2A584B179 /* ChargeControlTab.swift */; };
 		AE320A26D04ECC4FA410C2DB /* ChargeRuleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D319AF615B1187618FB150E3 /* ChargeRuleEditorView.swift */; };
 		B0EE4EF4AD9AB7F70A2F351F /* MenuBarIconProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E372AC048F4FDBF7C3DD95F /* MenuBarIconProvider.swift */; };
@@ -37,7 +41,6 @@
 		E07AE453F9E0D6FF37843582 /* HistoryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = F105A62A03979286A7A26679 /* HistoryTab.swift */; };
 		E37E8E05CA8D2770461EBCC7 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4353B633127F96C4C84960B5 /* main.swift */; };
 		E650BDA96C3E1BEC9646AA8D /* AITab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA55E47D619545252ACA56E /* AITab.swift */; };
-		A1B2C3D4E5F60718293A4B5C /* CalendarMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5061728394A5B6C /* CalendarMonitor.swift */; };
 		EBA2CB89F77522EECEF9B7BF /* CalibrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2972EF6C83E93F9A84730A93 /* CalibrationManager.swift */; };
 		F9DDDFF25BA7EE9E26FEC381 /* CalibrationTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A8F898ADA1916FFA57D694 /* CalibrationTab.swift */; };
 		FAF03DCBEB33F4ABBC4FFD29 /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC5F4DA51AA89C6E3B8B2B4 /* PopoverView.swift */; };
@@ -72,7 +75,6 @@
 /* Begin PBXFileReference section */
 		0A26E40F23CB45A4D55EACB3 /* BatterySliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatterySliderView.swift; sourceTree = "<group>"; };
 		0E372AC048F4FDBF7C3DD95F /* MenuBarIconProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconProvider.swift; sourceTree = "<group>"; };
-		B1C2D3E4F5061728394A5B6C /* CalendarMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMonitor.swift; sourceTree = "<group>"; };
 		2972EF6C83E93F9A84730A93 /* CalibrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationManager.swift; sourceTree = "<group>"; };
 		2EC5F4DA51AA89C6E3B8B2B4 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		358DAA874267162DA5D9D61D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -95,9 +97,15 @@
 		7EA55E47D619545252ACA56E /* AITab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITab.swift; sourceTree = "<group>"; };
 		80F9842344CCAC0E0BA4D38C /* BatteryAgentHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BatteryAgentHelper.entitlements; sourceTree = "<group>"; };
 		9F8BD2F105C400A6A6306C2B /* SMCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCClient.swift; sourceTree = "<group>"; };
+		AA001122BB334455CC667788 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
+		AA001122BB334455CC667799 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		AB6F063BA4EA7BF5DC4E0C4C /* SmartChargingTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartChargingTab.swift; sourceTree = "<group>"; };
 		AD81AF87E7D7A0D2A584B179 /* ChargeControlTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeControlTab.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5061728394A5B6C /* CalendarMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMonitor.swift; sourceTree = "<group>"; };
+		B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B5323D56839C159F7190DF42 /* XPCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCProtocol.swift; sourceTree = "<group>"; };
+		BB1234567890ABCDEF123456 /* SmartChargingReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartChargingReportView.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF6600AA /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		C11C962F5084F4871849FDDE /* BatteryAgent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BatteryAgent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4DC0323DCBC403CBD2D5D90 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D319AF615B1187618FB150E3 /* ChargeRuleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeRuleEditorView.swift; sourceTree = "<group>"; };
@@ -107,7 +115,6 @@
 		F105A62A03979286A7A26679 /* HistoryTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTab.swift; sourceTree = "<group>"; };
 		F1A8F898ADA1916FFA57D694 /* CalibrationTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationTab.swift; sourceTree = "<group>"; };
 		F24B6777EDE470390CCBF710 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsagePatternTracker.swift; sourceTree = "<group>"; };
 		FF09DC63E29E5B6EAE9E12BC /* BatteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -155,6 +162,7 @@
 				3716D31EA657C892A6E19E01 /* PatternHeatmapView.swift */,
 				707D4313194E5C6008E8A953 /* SettingsContainerView.swift */,
 				AB6F063BA4EA7BF5DC4E0C4C /* SmartChargingTab.swift */,
+				BB1234567890ABCDEF123456 /* SmartChargingReportView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -231,6 +239,7 @@
 				5DA690E7D2D6718AC3713A4E /* SmartChargeScheduler.swift */,
 				9F8BD2F105C400A6A6306C2B /* SMCClient.swift */,
 				F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */,
+				BB22CC33DD44EE55FF6600AA /* UpdateChecker.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -241,6 +250,7 @@
 				F24B6777EDE470390CCBF710 /* Assets.xcassets */,
 				5025DDB58F7CD24DF5EF55F1 /* Info.plist */,
 				B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */,
+				AA001122BB334455CC6677AA /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -290,6 +300,7 @@
 			);
 			name = BatteryAgent;
 			packageProductDependencies = (
+				1F50AB212F7B7CDE00F6E350 /* Sparkle */,
 			);
 			productName = BatteryAgent;
 			productReference = C11C962F5084F4871849FDDE /* BatteryAgent.app */;
@@ -311,9 +322,13 @@
 			knownRegions = (
 				Base,
 				en,
+				ko,
 			);
 			mainGroup = DE8B6ED77D990F9DE100F3F5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1F50AB202F7B7CDE00F6E350 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -330,6 +345,7 @@
 			files = (
 				566507F1AD93E11FECCD0BC8 /* Assets.xcassets in Resources */,
 				A2B3C4D5E6F7081929304A5B /* PrivacyInfo.xcprivacy in Resources */,
+				AA001122BB334455CC6677BB /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -369,7 +385,9 @@
 				9D3DAA36C42B8144F42F47BC /* SmartChargeScheduler.swift in Sources */,
 				C02160E6D1B8A519EDDA5801 /* SmartChargingState.swift in Sources */,
 				7324EF9ABA0232D6D69BA37F /* SmartChargingTab.swift in Sources */,
+				AA1234567890ABCDEF123456 /* SmartChargingReportView.swift in Sources */,
 				C6DD7A558340802E243FA315 /* UsagePatternTracker.swift in Sources */,
+				AA11BB22CC33DD44EE55FF66 /* UpdateChecker.swift in Sources */,
 				50A70B46B3C57C288B5F709B /* XPCProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -393,6 +411,18 @@
 		};
 /* End PBXTargetDependency section */
 
+/* Begin PBXVariantGroup section */
+		AA001122BB334455CC6677AA /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AA001122BB334455CC667799 /* en */,
+				AA001122BB334455CC667788 /* ko */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
 		1EB17FF2E188850D8AC73999 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -405,7 +435,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.4.0\nCFBundleVersion=6\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.0\nCFBundleVersion=7\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -485,7 +515,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.4.0\nCFBundleVersion=6\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.0\nCFBundleVersion=7\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -634,6 +664,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1F50AB202F7B7CDE00F6E350 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1F50AB212F7B7CDE00F6E350 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1F50AB202F7B7CDE00F6E350 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 745E39387C4D72EAC0E2150A /* Project object */;
 }

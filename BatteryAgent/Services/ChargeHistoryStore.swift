@@ -231,6 +231,82 @@ final class ChargeHistoryStore: Sendable {
         }
     }
 
+    // MARK: - Weekly Stats
+
+    /// 최근 7일간 충전 통계를 반환
+    func loadWeeklyStats() -> WeeklyStats {
+        withDB { db in
+            let cutoff = Int(Date().timeIntervalSince1970) - (7 * 24 * 3600)
+
+            // 평균 충전 레벨
+            let avgSQL = "SELECT AVG(charge) FROM charge_history WHERE timestamp > ?"
+            var avgStmt: OpaquePointer?
+            var avgLevel: Double = 0
+            if sqlite3_prepare_v2(db, avgSQL, -1, &avgStmt, nil) == SQLITE_OK {
+                sqlite3_bind_int64(avgStmt, 1, Int64(cutoff))
+                if sqlite3_step(avgStmt) == SQLITE_ROW {
+                    avgLevel = sqlite3_column_double(avgStmt, 0)
+                }
+                sqlite3_finalize(avgStmt)
+            }
+
+            // 충전 중인 시간(분) — is_charging=1 레코드의 연속 구간 합산
+            // record 간격: historyRecordInterval(5분 기준)
+            let chargingSQL = """
+                SELECT timestamp, is_charging, is_plugged_in FROM charge_history
+                WHERE timestamp > ?
+                ORDER BY timestamp ASC
+                """
+            var cStmt: OpaquePointer?
+            var totalChargingMinutes: Int = 0
+            var chargeDisconnectCount: Int = 0
+            var plugInCount: Int = 0
+
+            if sqlite3_prepare_v2(db, chargingSQL, -1, &cStmt, nil) == SQLITE_OK {
+                sqlite3_bind_int64(cStmt, 1, Int64(cutoff))
+
+                var prevTimestamp: Int64 = 0
+                var prevIsCharging: Bool = false
+                var prevIsPluggedIn: Bool = false
+                var firstRow = true
+
+                while sqlite3_step(cStmt) == SQLITE_ROW {
+                    let ts = sqlite3_column_int64(cStmt, 0)
+                    let isCharging = sqlite3_column_int(cStmt, 1) != 0
+                    let isPluggedIn = sqlite3_column_int(cStmt, 2) != 0
+
+                    if !firstRow {
+                        // 충전 중이던 구간 — 간격(초)을 분으로 환산
+                        if prevIsCharging {
+                            let intervalMinutes = Int((ts - prevTimestamp) / 60)
+                            totalChargingMinutes += min(intervalMinutes, 10) // 최대 10분/구간 (이상값 방지)
+                        }
+                        // 플러그 연결/해제 카운트
+                        if !prevIsPluggedIn && isPluggedIn {
+                            plugInCount += 1
+                        }
+                        if prevIsPluggedIn && !isPluggedIn {
+                            chargeDisconnectCount += 1
+                        }
+                    }
+
+                    prevTimestamp = ts
+                    prevIsCharging = isCharging
+                    prevIsPluggedIn = isPluggedIn
+                    firstRow = false
+                }
+                sqlite3_finalize(cStmt)
+            }
+
+            return WeeklyStats(
+                totalChargingMinutes: totalChargingMinutes,
+                avgChargeLevel: avgLevel,
+                chargeDisconnectCount: chargeDisconnectCount,
+                plugInCount: plugInCount
+            )
+        } ?? WeeklyStats(totalChargingMinutes: 0, avgChargeLevel: 0, chargeDisconnectCount: 0, plugInCount: 0)
+    }
+
     func pruneOldRecords() {
         withDB { db in
             let cutoff = Int(Date().timeIntervalSince1970) - (Constants.historyRetentionDays * 24 * 3600)

@@ -4,6 +4,8 @@ import ServiceManagement
 struct GeneralTab: View {
     @Bindable var viewModel: BatteryViewModel
     @State private var launchAtLogin = false
+    @State private var updateChecker = UpdateChecker()
+    @State private var autoCheckUpdates = true
 
     var body: some View {
         Form {
@@ -16,6 +18,19 @@ struct GeneralTab: View {
                     .onChange(of: launchAtLogin) { _, newValue in
                         setLaunchAtLogin(newValue)
                     }
+            }
+
+            Section("업데이트") {
+                Toggle("자동 업데이트 확인", isOn: $autoCheckUpdates)
+                    .onChange(of: autoCheckUpdates) { _, newValue in
+                        updateChecker.automaticallyChecksForUpdates = newValue
+                    }
+
+                Button("지금 업데이트 확인") {
+                    updateChecker.checkForUpdates()
+                }
+                .disabled(!updateChecker.canCheckForUpdates)
+                .frame(maxWidth: .infinity)
             }
 
             Section("정보") {
@@ -39,6 +54,7 @@ struct GeneralTab: View {
         .padding()
         .onAppear {
             launchAtLogin = (SMAppService.mainApp.status == .enabled)
+            autoCheckUpdates = updateChecker.automaticallyChecksForUpdates
         }
     }
 

@@ -104,9 +104,56 @@ struct ChargeControlTab: View {
             Section("알림") {
                 Toggle("충전 완료 시 알림", isOn: $viewModel.notifyOnComplete)
             }
+
+            Section("열 보호") {
+                Toggle("온도 기반 충전 보호", isOn: $viewModel.thermalProtectionEnabled)
+
+                if viewModel.thermalProtectionEnabled {
+                    HStack {
+                        Text("온도 임계값")
+                        Spacer()
+                        Text(String(format: "%.0f°C", viewModel.thermalProtectionThreshold))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                        Stepper(
+                            "",
+                            value: $viewModel.thermalProtectionThreshold,
+                            in: 30...45,
+                            step: 1
+                        )
+                        .labelsHidden()
+                    }
+
+                    HStack {
+                        Text("현재 온도")
+                        Spacer()
+                        Text(String(format: "%.1f°C", viewModel.batteryState.temperature))
+                            .monospacedDigit()
+                            .foregroundStyle(temperatureColor)
+                    }
+
+                    Text(thermalHysteresisDescription)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
         .formStyle(.grouped)
         .padding()
+    }
+
+    private var temperatureColor: Color {
+        let temp = viewModel.batteryState.temperature
+        let threshold = viewModel.thermalProtectionThreshold
+        if temp >= threshold { return .red }
+        if temp >= threshold - Constants.thermalHysteresis { return .orange }
+        return .secondary
+    }
+
+    private var thermalHysteresisDescription: String {
+        let threshold = viewModel.thermalProtectionThreshold
+        let resume = threshold - Constants.thermalHysteresis
+        return String(format: "%.0f°C 초과 시 충전 중단, %.0f°C 이하로 내려가면 재개", threshold, resume)
     }
 
     private var chargeLimitBinding: Binding<Double> {

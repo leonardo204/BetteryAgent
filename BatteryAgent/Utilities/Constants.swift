@@ -29,6 +29,8 @@ enum Constants {
         static let chargeRules = "chargeRules"
         static let defaultLeadMinutes = "defaultLeadMinutes"
         static let calendarIntegrationEnabled = "calendarIntegrationEnabled"
+        static let thermalProtectionEnabled = "thermalProtectionEnabled"
+        static let thermalProtectionThreshold = "thermalProtectionThreshold"
     }
 
     // MARK: - SMC Keys
@@ -42,6 +44,8 @@ enum Constants {
     // MARK: - Defaults
 
     static let defaultChargeLimit: Int = 80
+    static let defaultThermalThreshold: Double = 35.0
+    static let thermalHysteresis: Double = 2.0
     static let defaultDischargeFloor = 20
     static let defaultRechargeMode = RechargeMode.smart
     static let pollingInterval: TimeInterval = 30

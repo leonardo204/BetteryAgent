@@ -5,6 +5,7 @@ struct SmartChargingTab: View {
     @State private var showPatternHeatmap = false
     @State private var showResetAlert = false
     @State private var showAddRuleSheet = false
+    @State private var showChargingReport = false
     @State private var editingRule: ChargeRule? = nil
     @State private var defaultLeadMinutes: Int = {
         let v = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKey.defaultLeadMinutes)
@@ -49,6 +50,13 @@ struct SmartChargingTab: View {
 
                         Button("자세히") {
                             showPatternHeatmap = true
+                        }
+                        .buttonStyle(.borderless)
+                        .font(.caption)
+                        .foregroundStyle(Color.accentColor)
+
+                        Button("주간 리포트") {
+                            showChargingReport = true
                         }
                         .buttonStyle(.borderless)
                         .font(.caption)
@@ -219,6 +227,12 @@ struct SmartChargingTab: View {
                 patternSlots: viewModel.patternSlots,
                 learningDays: viewModel.smartChargingStatus.learningDays,
                 lastObservationDate: viewModel.lastObservationDate
+            )
+        }
+        .sheet(isPresented: $showChargingReport) {
+            SmartChargingReportView(
+                status: viewModel.smartChargingStatus,
+                patternSlots: viewModel.patternSlots
             )
         }
         .sheet(isPresented: $showAddRuleSheet) {

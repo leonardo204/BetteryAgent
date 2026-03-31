@@ -76,6 +76,23 @@ class BatteryViewModel {
         calibrationManager.state
     }
 
+    // MARK: - Thermal Protection
+
+    var thermalProtectionEnabled: Bool = false {
+        didSet {
+            UserDefaults.standard.set(thermalProtectionEnabled, forKey: Constants.UserDefaultsKey.thermalProtectionEnabled)
+        }
+    }
+
+    var thermalProtectionThreshold: Double = Constants.defaultThermalThreshold {
+        didSet {
+            UserDefaults.standard.set(thermalProtectionThreshold, forKey: Constants.UserDefaultsKey.thermalProtectionThreshold)
+        }
+    }
+
+    /// 온도 초과로 충전이 차단된 상태
+    var isThermalThrottled: Bool = false
+
     // MARK: - Daemon Install State
 
     /// 헬퍼 설치 시도 후 실패한 경우 true — PopoverView 안내 배너에서 사용
@@ -89,6 +106,11 @@ class BatteryViewModel {
     // MARK: - Calendar
 
     let calendarMonitor = CalendarMonitor()
+
+    // MARK: - Internal Accessors
+
+    /// AI 분석에서 충전 이력에 접근하기 위한 accessor
+    var chargeHistory: ChargeHistoryStore { historyStore }
 
     // MARK: - Private
 
@@ -201,6 +223,10 @@ class BatteryViewModel {
         showPercentage = defaults.bool(forKey: Constants.UserDefaultsKey.showPercentage)
         notifyOnComplete = defaults.object(forKey: Constants.UserDefaultsKey.notifyOnComplete) == nil
             ? true : defaults.bool(forKey: Constants.UserDefaultsKey.notifyOnComplete)
+
+        thermalProtectionEnabled = defaults.bool(forKey: Constants.UserDefaultsKey.thermalProtectionEnabled)
+        let savedThermalThreshold = defaults.double(forKey: Constants.UserDefaultsKey.thermalProtectionThreshold)
+        thermalProtectionThreshold = savedThermalThreshold > 0 ? savedThermalThreshold : Constants.defaultThermalThreshold
 
         // Sync to batteryState
         batteryState.chargeLimit = chargeLimit
@@ -350,16 +376,53 @@ class BatteryViewModel {
     private func evaluateChargingPolicy() {
         let charge = batteryState.currentCharge
         let pluggedIn = batteryState.isPluggedIn
+        let temperature = batteryState.temperature
+
+        // MARK: 온도 보호 — 최우선 (다른 충전 정책보다 앞서 평가)
+        if thermalProtectionEnabled {
+            if temperature >= thermalProtectionThreshold {
+                if !isThermalThrottled {
+                    logger.warning("Thermal throttle activated: \(temperature, format: .fixed(precision: 1))°C >= \(self.thermalProtectionThreshold, format: .fixed(precision: 1))°C")
+                    isThermalThrottled = true
+                }
+                smcClient.disableCharging { _ in }
+                smcClient.setForceDischarge(false) { _ in }
+                return
+            } else if isThermalThrottled {
+                let resumeThreshold = thermalProtectionThreshold - Constants.thermalHysteresis
+                if temperature < resumeThreshold {
+                    logger.info("Thermal throttle released: \(temperature, format: .fixed(precision: 1))°C < \(resumeThreshold, format: .fixed(precision: 1))°C")
+                    isThermalThrottled = false
+                    // 히스테리시스 해소 — 아래 일반 정책으로 fall through
+                } else {
+                    // 아직 쿨다운 범위: 차단 유지 (return)
+                    smcClient.disableCharging { _ in }
+                    smcClient.setForceDischarge(false) { _ in }
+                    return
+                }
+            }
+        } else if isThermalThrottled {
+            // 온도 보호가 비활성화된 경우 throttle 상태 해제
+            isThermalThrottled = false
+        }
 
         // Determine effective limit via smart charging
         let effectiveLimit: Int
         if isSmartChargingEnabled {
-            let learnedPatterns = historyStore.loadDetectedPatterns()
+            let allLearnedPatterns = historyStore.loadDetectedPatterns()
             let leadMinutes = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKey.defaultLeadMinutes)
             let effectiveLead = leadMinutes > 0 ? leadMinutes : Constants.defaultSmartLeadMinutes
             let calendarEventDate: Date? = isCalendarIntegrationEnabled
                 ? calendarMonitor.shouldPreCharge(leadMinutes: effectiveLead)
                 : nil
+
+            // 종일 이벤트(공휴일/휴가)가 있는 날은 학습 패턴을 무시 — 수동 규칙/캘린더 이벤트는 유지
+            let hasAllDayEvent = isCalendarIntegrationEnabled && calendarMonitor.hasAllDayEventToday()
+            if hasAllDayEvent {
+                logger.info("All-day event today — skipping learned patterns for smart charge evaluation")
+            }
+            let learnedPatterns: [DetectedPattern] = hasAllDayEvent ? [] : allLearnedPatterns
+
             let decision = smartScheduler.evaluate(
                 currentCharge: charge,
                 isPluggedIn: pluggedIn,

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>BatteryAgent Changelog</title>
+    <link>https://github.com/leonardo204/BetteryAgent</link>
+    <description>BatteryAgent 업데이트 피드</description>
+    <language>ko</language>
+
+    <item>
+      <title>BatteryAgent 1.4.0</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.4.0</link>
+      <sparkle:version>6</sparkle:version>
+      <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.4.0 — Sparkle 자동 업데이트 통합</h2>
+        <ul>
+          <li>Sparkle 프레임워크를 통한 자동 업데이트 지원</li>
+          <li>설정 > 정보 탭에서 업데이트 확인 가능</li>
+          <li>앱 시작 시 자동 업데이트 체크</li>
+        </ul>
+      ]]></description>
+      <pubDate>Sun, 29 Mar 2026 09:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.4.0/BatteryAgent-v1.4.0.dmg"
+        sparkle:edSignature="REPLACE_WITH_ED_SIGNATURE"
+        length="0"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+  </channel>
+</rss>
