@@ -31,3 +31,9 @@ npm-debug.log*
 .claude/.hook_feedback
 .claude/.project_root
 .claude/.messenger_enabled
+
+# Playwright browser state
+browser-state-*.json
+
+# Build output
+build/
