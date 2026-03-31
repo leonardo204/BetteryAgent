@@ -8,6 +8,28 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.5.7</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.7</link>
+      <sparkle:version>14</sparkle:version>
+      <sparkle:shortVersionString>1.5.7</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.5.7 — 캘린더 권한 수정</h2>
+        <ul>
+          <li>릴리스 빌드에서 캘린더 entitlements가 누락되던 문제 수정</li>
+          <li>캘린더 연동이 이제 정상 동작합니다</li>
+        </ul>
+      ]]></description>
+      <pubDate>Mon, 31 Mar 2026 21:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.5.7/BatteryAgent-v1.5.7.dmg"
+        sparkle:edSignature="sENsWQDAMLnuqf90+tmtsZNpateyepjU5BtDRRBm1cDdBCpRGbnh88u+Mp7WdRipbMmN7VQ0hSxqD5PYxzsUBw=="
+        length="2434315"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.5.6</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.6</link>
       <sparkle:version>13</sparkle:version>
