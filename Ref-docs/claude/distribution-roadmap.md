@@ -1,6 +1,6 @@
 # 배포 로드맵 — BatteryAgent 배포 전략 및 기능 확장 계획
 
-> 작성: 2026-03-30 | 기준: macOS Tahoe 26.4
+> 작성: 2026-03-30 | 갱신: 2026-03-31 | 기준: macOS Tahoe 26.4
 
 ---
 
@@ -17,39 +17,39 @@
 
 > 목표: 현재 아키텍처를 유지하면서 정식 배포 가능한 상태로 만든다.
 
-### Step 1.1 — PrivacyInfo.xcprivacy 추가
-- [ ] Privacy Manifest 파일 생성 (IOKit, EventKit, SQLite, UserDefaults API 선언)
-- [ ] Xcode 프로젝트에 리소스로 등록
-- [ ] 빌드 후 번들 포함 확인
+### Step 1.1 — PrivacyInfo.xcprivacy 추가 ✅
+- [x] Privacy Manifest 파일 생성 (UserDefaults `CA92.1`, FileTimestamp `C617.1`)
+- [x] Xcode 프로젝트에 리소스로 등록
+- [x] 빌드 후 번들 포함 확인
 
-### Step 1.2 — Developer ID 서명 설정
-- [ ] Apple Developer Portal에서 Developer ID Application 인증서 확인/발급
-- [ ] Developer ID Installer 인증서 확인/발급
-- [ ] Xcode에서 Signing 설정을 Release 빌드에 Developer ID 적용 확인
+### Step 1.2 — Developer ID 서명 설정 ✅
+- [x] Developer ID Application 인증서 확인 (`YONGSUB LEE (XU8HS9JUTS)`)
+- [x] Developer ID Installer 인증서 발급 + 키체인 설치
+- [x] Notarization 키체인 프로필 (`notarytool`) 확인
 - ⚠️ project.pbxproj의 CODE_SIGN_*, DEVELOPMENT_TEAM은 수정하지 않음
 
-### Step 1.3 — Notarization 자동화 스크립트
-- [ ] `scripts/notarize.sh` 작성
-  - `xcodebuild archive` → Release 빌드
-  - `xcrun notarytool submit` → Apple 공증 제출
-  - `xcrun stapler staple` → 공증 티켓 앱에 첨부
-- [ ] App-specific password 또는 Keychain 프로필 설정
-- [ ] CI/CD 연동 고려 (GitHub Actions)
+### Step 1.3 — Notarization + DMG + Release 자동화 ✅
+- [x] `scripts/release.sh` — 전체 릴리스 자동화 (archive → 서명 → DMG → 공증 → GitHub Release)
+- [x] `scripts/ExportOptions.plist` — Developer ID automatic 서명 설정
+- [x] 키체인 프로필 기반 인증 (비밀번호 하드코딩 없음)
+- [x] `--dry-run`, `--skip-notarize`, `--skip-upload` 옵션
+- [ ] CI/CD 연동 고려 (GitHub Actions) — 향후
 
-### Step 1.4 — DMG 패키징
-- [ ] DMG 레이아웃 설계 (앱 아이콘 + Applications 폴더 바로가기)
-- [ ] `create-dmg` 또는 수동 스크립트로 DMG 생성 자동화
-- [ ] DMG에 공증 티켓 첨부 (`xcrun stapler staple`)
-- [ ] 다운로드 후 설치 플로우 테스트
+### Step 1.4 — v1.4.0 릴리스 ✅
+- [x] Apple Notarization 통과 (Accepted)
+- [x] Staple 적용 완료
+- [x] DMG 생성 (BatteryAgent-v1.4.0.dmg, 1.2MB)
+- [x] GitHub Release 업로드: https://github.com/leonardo204/BetteryAgent/releases/tag/v1.4.0
 
-### Step 1.5 — 배포 채널
-- [ ] GitHub Releases에 DMG 업로드
-- [ ] README.md에 다운로드 배지/링크 추가
-- [ ] 릴리스 노트 템플릿 작성
+### Step 1.5 — 배포 채널 보완 ✅
+- [x] GitHub Releases에 DMG 업로드
+- [x] README.md에 다운로드 배지/링크 추가 (동적 버전 배지, MIT 배지)
+- [x] v1.4.0 릴리스 노트 상세 작성
 
-### Step 1.6 — 기존 사용자 데몬 정리 안내
-- [ ] 업데이트 시 기존 LaunchDaemon 자동 감지 + 정리 (uninstall-daemon)
-- [ ] 첫 실행 시 헬퍼 미설치 경고 → 설치 가이드
+### Step 1.6 — 데몬 자동 관리 + 설치 가이드 ✅
+- [x] 헬퍼 버전 감지 (`version` 소켓 명령 추가) + 버전 불일치 시 자동 재설치
+- [x] 설치 실패 시 "시스템 설정 > 개인정보 보호 및 보안" 안내 배너
+- [x] PopoverView 헬퍼 설치 안내 문구 개선
 
 ---
 
@@ -152,6 +152,6 @@
 
 ---
 
-*Phase 1 완료 목표: v1.4.0 릴리스*
+*Phase 1: 완료 (2026-03-31) — v1.4.0 릴리스, 전 Step 완료*
 *Phase 2 완료 목표: v2.0.0 릴리스*
 *Phase 3: Apple API 공개 시점에 따라 유동적*
