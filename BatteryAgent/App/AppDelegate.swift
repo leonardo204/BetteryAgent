@@ -160,14 +160,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateStatusBar() {
         guard let vm = viewModel else { return }
+        let plugged = vm.batteryState.isPluggedIn || vm.batteryState.adapterWatts > 0
         let displayState: BatteryDisplayState
-        if vm.isManaging && vm.batteryState.currentCharge > vm.chargeLimit {
+        if !plugged && !vm.batteryState.isCharging {
+            displayState = .onBattery
+        } else if vm.isManaging && vm.batteryState.currentCharge > vm.chargeLimit {
             displayState = .pluggedIn  // 충전 차단만, AC 모드 유지
         } else if vm.smartChargingStatus.isSmartCharging && vm.batteryState.isCharging {
             displayState = .smartCharging
         } else if vm.batteryState.isCharging {
             displayState = .charging
-        } else if vm.batteryState.isPluggedIn || vm.batteryState.adapterWatts > 0 {
+        } else if plugged {
             displayState = .pluggedIn
         } else {
             displayState = .onBattery
