@@ -8,6 +8,29 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.5.3</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.3</link>
+      <sparkle:version>10</sparkle:version>
+      <sparkle:shortVersionString>1.5.3</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.5.3 — Sparkle 자동 업데이트 정상화</h2>
+        <ul>
+          <li>Sparkle 프레임워크 링크 수정 — 앱 내 업데이트 확인 동작</li>
+          <li>캘린더 권한 상태 즉시 반영</li>
+          <li>주간 리포트 창 크기 조정</li>
+        </ul>
+      ]]></description>
+      <pubDate>Mon, 31 Mar 2026 17:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.5.3/BatteryAgent-v1.5.3.dmg"
+        sparkle:edSignature="Khhfojjbx1B9K+mZBtB47wwxd5aMv+/0EjId76SHK2dbK39wAPmKZ5qVOagwkNTivTf833rIzgOAwM/a9lfABQ=="
+        length="2428425"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.5.2</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.2</link>
       <sparkle:version>9</sparkle:version>
