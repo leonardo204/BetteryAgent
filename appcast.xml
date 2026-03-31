@@ -8,23 +8,26 @@
     <language>ko</language>
 
     <item>
-      <title>BatteryAgent 1.4.0</title>
-      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.4.0</link>
-      <sparkle:version>6</sparkle:version>
-      <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+      <title>BatteryAgent 1.5.0</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.0</link>
+      <sparkle:version>7</sparkle:version>
+      <sparkle:shortVersionString>1.5.0</sparkle:shortVersionString>
       <description><![CDATA[
-        <h2>v1.4.0 — Sparkle 자동 업데이트 통합</h2>
+        <h2>v1.5.0 — 차별화 기능 강화</h2>
         <ul>
-          <li>Sparkle 프레임워크를 통한 자동 업데이트 지원</li>
-          <li>설정 > 정보 탭에서 업데이트 확인 가능</li>
-          <li>앱 시작 시 자동 업데이트 체크</li>
+          <li>온도 기반 충전 보호 (35°C 초과 시 자동 충전 중단)</li>
+          <li>공휴일/종일 이벤트 시 학습 패턴 자동 예외</li>
+          <li>스마트 충전 주간 리포트 (충전 통계 + 히트맵)</li>
+          <li>AI 분석에 배터리 수명 예측 + 충전 습관 제안 추가</li>
+          <li>Sparkle 자동 업데이트 지원</li>
+          <li>영어/한국어 로컬라이제이션</li>
         </ul>
       ]]></description>
-      <pubDate>Sun, 29 Mar 2026 09:00:00 +0900</pubDate>
+      <pubDate>Mon, 31 Mar 2026 12:00:00 +0900</pubDate>
       <enclosure
-        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.4.0/BatteryAgent-v1.4.0.dmg"
-        sparkle:edSignature="REPLACE_WITH_ED_SIGNATURE"
-        length="0"
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.5.0/BatteryAgent-v1.5.0.dmg"
+        sparkle:edSignature="0p8+NgYpBRrGynD8DkaMR7Hqp+2u3QA2pjnea7zRDINUoFwNMFfAuF2nyQsAzrUdfAE43ZxSXczXrNrJuLGMBw=="
+        length="1406539"
         type="application/octet-stream"
       />
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
