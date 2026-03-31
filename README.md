@@ -21,11 +21,15 @@
 
 ## 주요 기능
 
-- **충전 제한 관리** — 사용자 설정 %까지만 충전, 이후 SMC로 충전 차단 (AC 모드 유지)
+- **충전 제한 관리** — 사용자 설정 20-100%까지 충전 제한, SMC 충전 차단 (AC 모드 유지)
+- **온도 기반 보호** — 설정 온도(기본 35°C) 초과 시 자동 충전 중단
 - **스마트 충전** — 사용 패턴 학습(14일) 기반 예측 충전, 캘린더 연동, 수동 규칙
+- **공휴일/휴가 자동 예외** — 종일 이벤트 감지 시 학습 패턴 무시
 - **메뉴바 전용** — Dock 아이콘 없이 메뉴바에서 즉시 제어
-- **배터리 건강 분석** — Claude Code 연동 AI 배터리 상태 분석 및 수명 예측
-- **충전 이력** — SQLite 기반 충전/방전 기록 및 차트
+- **AI 배터리 분석** — Claude Code 연동 상태 분석, 수명 예측, 충전 습관 제안
+- **주간 충전 리포트** — 충전 통계, 감지 패턴, 히트맵 시각화
+- **자동 업데이트** — Sparkle 프레임워크 기반 앱 내 업데이트
+- **다국어** — 한국어, 영어 지원
 
 ## 스크린샷
 
@@ -62,8 +66,8 @@ sudo rm -f /tmp/BatteryAgentHelper.sock
 # Xcode에서 BatteryAgent scheme으로 빌드
 open BatteryAgent.xcodeproj
 
-# 또는 DMG 생성 (Developer ID 서명 + 공증 포함)
-bash build_dmg.sh
+# 또는 릴리스 빌드 (Developer ID 서명 + 공증 + DMG + GitHub Release)
+./scripts/release.sh
 ```
 
 ## 요구 사항
@@ -143,11 +147,13 @@ Shared/                   # XPC 프로토콜
 |------|------|
 | UI | SwiftUI |
 | 배터리 읽기 | IOKit (IOPSCopyPowerSourcesInfo, AppleSmartBattery) |
-| 충전 제어 | SMC (CH0B, CH0C 키 — 충전 차단만, 강제 방전 없이 AC 모드 유지) |
+| 충전 제어 | SMC (CHTE/CH0B/CH0C 키 — Tahoe/Legacy 자동 감지) |
 | 데이터 저장 | SQLite (충전 이력, 패턴 데이터) |
 | 캘린더 | EventKit + Claude Code AI 분류 |
-| 권한 관리 | Security.framework (AuthorizationExecuteWithPrivileges) |
+| 권한 관리 | Security.framework + LaunchDaemon (bootstrap system) |
 | 데몬 통신 | Unix Domain Socket |
+| 자동 업데이트 | Sparkle 2.9 (EdDSA 서명, appcast.xml) |
+| 로컬라이제이션 | 한국어, 영어 |
 
 ## 라이선스
 
