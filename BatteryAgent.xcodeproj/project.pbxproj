@@ -14,6 +14,7 @@
 		5619DFA264D036F152C51769 /* BatteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF09DC63E29E5B6EAE9E12BC /* BatteryViewModel.swift */; };
 		5655910CA6F078BC492679F2 /* ChargePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6258232C9DFCD229AC0490BC /* ChargePolicy.swift */; };
 		566507F1AD93E11FECCD0BC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F24B6777EDE470390CCBF710 /* Assets.xcassets */; };
+		A2B3C4D5E6F7081929304A5B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */; };
 		5B361204116A8E70223E3858 /* ChargeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC545DDCCFF765E570E20A5E /* ChargeRecord.swift */; };
 		695D1B459ED587A5BBB4AA8A /* ChargeHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E702EA1B8152865FA64B11A /* ChargeHistoryStore.swift */; };
 		6DA34DB8E45FFA93C503690A /* BatteryAgentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5406AD53FA11283B14A951DD /* BatteryAgentApp.swift */; };
@@ -106,6 +107,7 @@
 		F105A62A03979286A7A26679 /* HistoryTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTab.swift; sourceTree = "<group>"; };
 		F1A8F898ADA1916FFA57D694 /* CalibrationTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationTab.swift; sourceTree = "<group>"; };
 		F24B6777EDE470390CCBF710 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsagePatternTracker.swift; sourceTree = "<group>"; };
 		FF09DC63E29E5B6EAE9E12BC /* BatteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -238,6 +240,7 @@
 			children = (
 				F24B6777EDE470390CCBF710 /* Assets.xcassets */,
 				5025DDB58F7CD24DF5EF55F1 /* Info.plist */,
+				B2C3D4E5F6071829304A5B6C /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -326,6 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				566507F1AD93E11FECCD0BC8 /* Assets.xcassets in Resources */,
+				A2B3C4D5E6F7081929304A5B /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,7 +405,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.3.0\nCFBundleVersion=5\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.4.0\nCFBundleVersion=6\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -481,7 +485,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.3.0\nCFBundleVersion=5\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.4.0\nCFBundleVersion=6\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
