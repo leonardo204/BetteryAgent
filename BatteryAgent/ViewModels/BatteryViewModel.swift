@@ -144,12 +144,12 @@ class BatteryViewModel {
     init() {
         loadSettings()
         loadChargeRules()
+        checkAndInstallDaemon()
         updateBatteryState()
         startPolling()
         startHistoryRecording()
         startPatternObservation()
         startPowerSourceMonitoring()
-        checkAndInstallDaemon()
 
         Task {
             await NotificationManager.shared.requestAuthorization()
@@ -160,7 +160,10 @@ class BatteryViewModel {
         }
     }
 
+    private var isDaemonInstalling = false
+
     private func checkAndInstallDaemon() {
+        guard !isDaemonInstalling else { return }
         let client = SMCClient.shared
         let daemonRunning = client.isDaemonRunning
 
@@ -175,8 +178,10 @@ class BatteryViewModel {
                 }
                 let installedVer = client.getHelperVersion() ?? "unknown"
                 self.logger.info("Daemon version mismatch: installed=\(installedVer), bundle=\(client.bundleVersion). Updating...")
+                Task { @MainActor in self.isDaemonInstalling = true }
                 client.installDaemon { [weak self] success in
                     DispatchQueue.main.async {
+                        self?.isDaemonInstalling = false
                         if success {
                             self?.logger.info("Daemon updated to v\(client.bundleVersion)")
                             self?.daemonInstallFailed = false
@@ -190,8 +195,10 @@ class BatteryViewModel {
         } else {
             // 데몬 미실행 — 최초 설치 시도
             logger.info("Daemon not running, attempting install (bundle v\(client.bundleVersion))...")
+            isDaemonInstalling = true
             client.installDaemon { [weak self] success in
                 DispatchQueue.main.async {
+                    self?.isDaemonInstalling = false
                     if success {
                         self?.logger.info("Daemon installed successfully (v\(client.bundleVersion))")
                         self?.daemonInstallFailed = false
@@ -374,6 +381,8 @@ class BatteryViewModel {
     }
 
     private func evaluateChargingPolicy() {
+        guard smcClient.isDaemonRunning else { return }
+
         let charge = batteryState.currentCharge
         let pluggedIn = batteryState.isPluggedIn
         let temperature = batteryState.temperature

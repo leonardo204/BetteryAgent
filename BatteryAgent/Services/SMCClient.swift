@@ -106,37 +106,13 @@ final class SMCClient: Sendable {
         logger.info("SMC command: \(command)")
 
         DispatchQueue.global(qos: .userInitiated).async { [self, logger] in
-            // 소켓으로 직접 시도 (캐시된 상태와 무관하게)
             if let result = self.sendViaSocket(command) {
                 logger.info("Socket result: \(result)")
                 completion(result.hasPrefix("OK"))
-                return
+            } else {
+                logger.warning("Socket command failed: \(command) — daemon may not be running")
+                completion(false)
             }
-
-            // 소켓 실패 → 데몬 재설치 시도 (1회)
-            logger.info("Socket failed, attempting daemon reinstall")
-            let helperPath = self.bundledHelperPath
-            let installed = Self.runPrivileged(tool: helperPath, args: ["install-daemon"], logger: logger)
-
-            if installed {
-                // 설치 후 소켓 대기
-                for _ in 0..<30 {
-                    Thread.sleep(forTimeInterval: 0.1)
-                    if FileManager.default.fileExists(atPath: self.socketPath) { break }
-                }
-                self.invalidateDaemonCache()
-
-                // 재시도
-                if let result = self.sendViaSocket(command) {
-                    logger.info("Socket result after reinstall: \(result)")
-                    completion(result.hasPrefix("OK"))
-                    return
-                }
-            }
-
-            logger.error("Failed to send command even after reinstall attempt")
-            self.invalidateDaemonCache()
-            completion(false)
         }
     }
 
