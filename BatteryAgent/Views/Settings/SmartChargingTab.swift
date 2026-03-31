@@ -136,8 +136,8 @@ struct SmartChargingTab: View {
                     HStack {
                         Text("권한 상태")
                         Spacer()
-                        Text(viewModel.smartChargingStatus.calendarAuthorized ? "허용됨" : "확인 중…")
-                            .foregroundStyle(viewModel.smartChargingStatus.calendarAuthorized ? .green : .secondary)
+                        Text(calendarPermissionText)
+                            .foregroundStyle(calendarPermissionColor)
                             .font(.caption)
                     }
 
@@ -236,6 +236,24 @@ struct SmartChargingTab: View {
             ) { updatedRule in
                 viewModel.saveChargeRule(updatedRule)
             }
+        }
+    }
+
+    // MARK: - Calendar Permission
+
+    private var calendarPermissionText: String {
+        if viewModel.smartChargingStatus.calendarAuthorized { return "허용됨" }
+        switch viewModel.calendarMonitor.authorizationStatus {
+        case .denied, .restricted: return "거부됨"
+        default: return "확인 중…"
+        }
+    }
+
+    private var calendarPermissionColor: Color {
+        if viewModel.smartChargingStatus.calendarAuthorized { return .green }
+        switch viewModel.calendarMonitor.authorizationStatus {
+        case .denied, .restricted: return .red
+        default: return .secondary
         }
     }
 
