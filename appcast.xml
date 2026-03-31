@@ -8,6 +8,28 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.5.2</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.2</link>
+      <sparkle:version>9</sparkle:version>
+      <sparkle:shortVersionString>1.5.2</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.5.2 — 헬퍼 데몬 안정성 수정</h2>
+        <ul>
+          <li>launchctl bootstrap system으로 데몬 로드 방식 수정</li>
+          <li>데몬이 user session에 잘못 로드되던 문제 해결</li>
+        </ul>
+      ]]></description>
+      <pubDate>Mon, 31 Mar 2026 15:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.5.2/BatteryAgent-v1.5.2.dmg"
+        sparkle:edSignature="Q1Xz/7WufRexzn9MB2wULbdTWV5jZLDIWhbZXg8Bx58geD1wClpfv7Ol/MZwhGuHR965Wq7ZfaZ2VNk7hy8jCQ=="
+        length="1408668"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.5.1</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.1</link>
       <sparkle:version>8</sparkle:version>
