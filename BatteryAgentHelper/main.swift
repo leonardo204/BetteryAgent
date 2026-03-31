@@ -266,7 +266,14 @@ func installDaemon() -> Int32 {
         """
         try plist.write(toFile: plistPath, atomically: true, encoding: .utf8)
 
-        // Unload existing daemon (ignore errors if not loaded)
+        // Unload existing daemon (try both modern and legacy methods)
+        let bootoutTask = Process()
+        bootoutTask.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        bootoutTask.arguments = ["bootout", "system/com.zerolive.BatteryAgentHelper"]
+        try? bootoutTask.run()
+        bootoutTask.waitUntilExit()
+
+        // Legacy unload fallback
         let unloadTask = Process()
         unloadTask.executableURL = URL(fileURLWithPath: "/bin/launchctl")
         unloadTask.arguments = ["unload", plistPath]
@@ -276,12 +283,21 @@ func installDaemon() -> Int32 {
         // Remove stale socket
         try? FileManager.default.removeItem(atPath: "/tmp/BatteryAgentHelper.sock")
 
-        // Load daemon
+        // Load daemon (modern method: bootstrap into system domain)
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-        task.arguments = ["load", "-w", plistPath]
+        task.arguments = ["bootstrap", "system", plistPath]
         try task.run()
         task.waitUntilExit()
+
+        // Fallback to legacy load if bootstrap fails
+        if task.terminationStatus != 0 {
+            let legacyTask = Process()
+            legacyTask.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+            legacyTask.arguments = ["load", "-w", plistPath]
+            try legacyTask.run()
+            legacyTask.waitUntilExit()
+        }
 
         print("OK: Daemon installed and started")
         return 0
@@ -295,6 +311,14 @@ func uninstallDaemon() -> Int32 {
     let plistPath = "/Library/LaunchDaemons/com.zerolive.BatteryAgentHelper.plist"
     let binPath = "/usr/local/bin/BatteryAgentHelper"
 
+    // Modern bootout
+    let bootoutTask = Process()
+    bootoutTask.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+    bootoutTask.arguments = ["bootout", "system/com.zerolive.BatteryAgentHelper"]
+    try? bootoutTask.run()
+    bootoutTask.waitUntilExit()
+
+    // Legacy fallback
     let task = Process()
     task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
     task.arguments = ["unload", plistPath]

@@ -28,13 +28,13 @@
 	<string>BatteryAgent uses Apple Events to run privileged helper commands for battery charge control.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>BatteryAgent uses your calendar to pre-charge your battery before upcoming events.</string>
-	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/leonardo204/BetteryAgent/main/appcast.xml</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
-	<key>SUScheduledCheckInterval</key>
-	<integer>86400</integer>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/leonardo204/BetteryAgent/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>t/ShxvoO/jkL8lnwySVxbQU7SKtFEgwEkAznczDN1Is=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>
