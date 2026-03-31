@@ -101,7 +101,7 @@ final class SMCClient: Sendable {
                 }
             }
             self.invalidateDaemonCache()
-            completion(ok)
+            DispatchQueue.main.async { completion(ok) }
         }
     }
 
@@ -113,10 +113,10 @@ final class SMCClient: Sendable {
         DispatchQueue.global(qos: .userInitiated).async { [self, logger] in
             if let result = self.sendViaSocket(command) {
                 logger.info("Socket result: \(result)")
-                completion(result.hasPrefix("OK"))
+                DispatchQueue.main.async { completion(result.hasPrefix("OK")) }
             } else {
                 logger.warning("Socket command failed: \(command) — daemon may not be running")
-                completion(false)
+                DispatchQueue.main.async { completion(false) }
             }
         }
     }

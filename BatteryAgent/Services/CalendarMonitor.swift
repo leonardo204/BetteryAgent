@@ -95,7 +95,9 @@ final class CalendarMonitor {
                 // notDetermined인데 false → TCC 캐시 문제일 수 있음. 리셋 후 재시도
                 logger.info("Calendar: access denied despite notDetermined — resetting TCC and retrying")
                 await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-                    SMCClient.shared.resetCalendarPermission { _ in cont.resume() }
+                    SMCClient.shared.resetCalendarPermission { _ in
+                        DispatchQueue.main.async { cont.resume() }
+                    }
                 }
                 // 새 EKEventStore로 재시도 (기존 인스턴스는 캐시된 상태를 가짐)
                 let freshStore = EKEventStore()
