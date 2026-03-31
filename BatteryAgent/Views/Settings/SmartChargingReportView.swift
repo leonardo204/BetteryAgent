@@ -148,7 +148,7 @@ struct SmartChargingReportView: View {
                 .padding(16)
             }
         }
-        .frame(width: 400, height: 560)
+        .frame(width: 520, height: 600)
         .onAppear {
             weeklyStats = ChargeHistoryStore.shared.loadWeeklyStats()
         }
@@ -218,8 +218,7 @@ struct SmartChargingReportView: View {
 private struct MiniHeatmapView: View {
     let patternSlots: [[UsageSlot]]
 
-    // 미니 버전: 셀 크기 7pt, 6시간 단위 레이블
-    private let cellSize: CGFloat = 7
+    private let cellSize: CGFloat = 8
     private let cellSpacing: CGFloat = 1
     private let dayLabelWidth: CGFloat = 20
 
@@ -236,7 +235,7 @@ private struct MiniHeatmapView: View {
                 Spacer().frame(width: dayLabelWidth)
                 ForEach([0, 6, 12, 18], id: \.self) { hour in
                     Text("\(hour)h")
-                        .font(.system(size: 7))
+                        .font(.system(size: 8))
                         .foregroundStyle(.secondary)
                         .frame(
                             width: CGFloat(12) * (cellSize + cellSpacing),

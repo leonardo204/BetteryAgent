@@ -67,9 +67,9 @@ final class SMCClient: Sendable {
         return String(response.dropFirst(3)) // "OK " 제거
     }
 
-    /// 앱 번들의 CFBundleVersion (빌드 번호)
+    /// 앱 번들의 마케팅 버전 (예: 1.5.2)
     var bundleVersion: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
     }
 
     /// 설치된 헬퍼와 앱 번들의 버전이 다르면 true

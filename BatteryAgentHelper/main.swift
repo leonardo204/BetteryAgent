@@ -4,7 +4,7 @@ import Foundation
 // Runs as root LaunchDaemon, listens for commands via Unix socket
 
 let socketPath = "/tmp/BatteryAgentHelper.sock"
-let helperVersion = "1.0.0"
+let helperVersion = "1.5.2"
 
 func main() -> Int32 {
     guard CommandLine.arguments.count >= 2 else {
@@ -266,10 +266,14 @@ func installDaemon() -> Int32 {
         """
         try plist.write(toFile: plistPath, atomically: true, encoding: .utf8)
 
-        // Unload existing daemon (try both modern and legacy methods)
+        // Unload existing daemon (try both modern and legacy methods, suppress errors)
+        let devNull = FileHandle(forWritingAtPath: "/dev/null")
+
         let bootoutTask = Process()
         bootoutTask.executableURL = URL(fileURLWithPath: "/bin/launchctl")
         bootoutTask.arguments = ["bootout", "system/com.zerolive.BatteryAgentHelper"]
+        bootoutTask.standardError = devNull
+        bootoutTask.standardOutput = devNull
         try? bootoutTask.run()
         bootoutTask.waitUntilExit()
 
@@ -277,6 +281,8 @@ func installDaemon() -> Int32 {
         let unloadTask = Process()
         unloadTask.executableURL = URL(fileURLWithPath: "/bin/launchctl")
         unloadTask.arguments = ["unload", plistPath]
+        unloadTask.standardError = devNull
+        unloadTask.standardOutput = devNull
         try? unloadTask.run()
         unloadTask.waitUntilExit()
 
