@@ -193,8 +193,10 @@ struct AITab: View {
             if let saved = UserDefaults.standard.string(forKey: "claudeCodePath"),
                FileManager.default.isExecutableFile(atPath: saved) {
                 claudePath = saved
+                logger.info("onAppear: using saved claude path=\(saved, privacy: .public)")
             } else {
                 claudePath = findClaudePath()
+                logger.info("onAppear: detected claude path=\(claudePath ?? "nil", privacy: .public)")
             }
             if claudePath != nil, case .unknown = connectionStatus { checkConnection() }
         }
@@ -267,7 +269,7 @@ struct AITab: View {
             logger.warning("checkConnection: claudePath is nil")
             return
         }
-        logger.info("checkConnection: starting with path=\(path)")
+        logger.info("checkConnection: starting with path=\(path, privacy: .public)")
         isCheckingConnection = true
         connectionStatus = .checking
 
@@ -275,7 +277,7 @@ struct AITab: View {
             // 1단계: 파일 존재 및 실행 가능 여부
             guard FileManager.default.isExecutableFile(atPath: path) else {
                 DispatchQueue.main.async { [self] in
-                    logger.warning("checkConnection: file not executable at \(path)")
+                    logger.warning("checkConnection: file not executable at \(path, privacy: .public)")
                     isCheckingConnection = false
                     let detail = """
                     Claude Code 실행 파일을 찾을 수 없습니다.
@@ -294,7 +296,57 @@ struct AITab: View {
                 return
             }
 
-            // 2단계: 실행 테스트
+            // 2단계: claude --version 으로 기본 설치 확인
+            let versionProcess = Process()
+            versionProcess.executableURL = URL(fileURLWithPath: path)
+            versionProcess.arguments = ["--version"]
+            let versionOut = Pipe()
+            let versionErr = Pipe()
+            versionProcess.standardOutput = versionOut
+            versionProcess.standardError = versionErr
+            do {
+                try versionProcess.run()
+                versionProcess.waitUntilExit()
+                let vOut = String(data: versionOut.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let vErr = String(data: versionErr.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if versionProcess.terminationStatus == 0 {
+                    // logger는 @MainActor이므로 main에서 호출하지 않고 여기서는 print 사용
+                    DispatchQueue.main.async { [self] in
+                        logger.info("checkConnection: claude version=\(vOut, privacy: .public)")
+                    }
+                } else {
+                    DispatchQueue.main.async { [self] in
+                        logger.error("checkConnection: claude --version failed exit=\(versionProcess.terminationStatus), stderr=\(vErr.prefix(300), privacy: .public)")
+                        isCheckingConnection = false
+                        errorDetail = """
+                        Claude Code 실행 실패 (--version)
+
+                        경로: \(path)
+                        종료 코드: \(versionProcess.terminationStatus)
+                        \(vErr.isEmpty ? "" : "에러: \(vErr)")
+
+                        해결 방법:
+                        1. 터미널에서 'claude --version' 직접 실행
+                        2. Claude Code 재설치:
+                           curl -fsSL https://claude.ai/install.sh | sh
+                        """
+                        connectionStatus = .disconnected("실행 실패")
+                        showErrorDetail = true
+                    }
+                    return
+                }
+            } catch {
+                DispatchQueue.main.async { [self] in
+                    logger.error("checkConnection: claude --version launch error=\(error.localizedDescription, privacy: .public)")
+                    isCheckingConnection = false
+                    errorDetail = "Claude 실행 실패: \(error.localizedDescription)\n경로: \(path)"
+                    connectionStatus = .disconnected("실행 불가")
+                    showErrorDetail = true
+                }
+                return
+            }
+
+            // 3단계: API 연결 테스트
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
             process.arguments = ["--print", "-p", "Reply with only your model name (e.g. claude-opus-4-6)."]
@@ -347,15 +399,18 @@ struct AITab: View {
 
                     if process.terminationStatus == 0 {
                         let modelName = output.isEmpty ? "claude" : output.components(separatedBy: .newlines).last ?? "claude"
-                        self.logger.info("checkConnection: success — model=\(modelName)")
+                        self.logger.info("checkConnection: success — model=\(modelName, privacy: .public)")
                         connectionStatus = .connected(modelName)
                         // 성공한 경로 저장
                         UserDefaults.standard.set(path, forKey: "claudeCodePath")
                         return
                     }
 
-                    // 에러 분석
-                    self.logger.error("checkConnection: failed — exit=\(process.terminationStatus), stderr=\(errMsg.prefix(200))")
+                    // 에러 분석 + 환경 진단
+                    let env = ProcessInfo.processInfo.environment
+                    let shellPath = env["SHELL"] ?? "unknown"
+                    let hasApiKey = env["ANTHROPIC_API_KEY"] != nil
+                    self.logger.error("checkConnection: failed — exit=\(process.terminationStatus), stderr=\(errMsg.prefix(500), privacy: .public), shell=\(shellPath, privacy: .public), hasApiKey=\(hasApiKey)")
                     let combined = errMsg.lowercased()
                     let (reason, detail) = analyzeError(combined: combined, errMsg: errMsg, exitCode: process.terminationStatus)
                     errorDetail = detail
@@ -541,7 +596,7 @@ struct AITab: View {
 
     private func findClaudePath() -> String? {
         let home = ProcessInfo.processInfo.environment["HOME"] ?? ""
-        logger.info("findClaudePath: HOME=\(home)")
+        logger.info("findClaudePath: HOME=\(home, privacy: .public)")
         let candidates = [
             home + "/.local/bin/claude",
             "/opt/homebrew/bin/claude",
@@ -557,7 +612,7 @@ struct AITab: View {
             }
         }
         if let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
-            logger.info("findClaudePath: found at \(found)")
+            logger.info("findClaudePath: found at \(found, privacy: .public)")
             return found
         }
         logger.warning("findClaudePath: not found in any candidate path")
