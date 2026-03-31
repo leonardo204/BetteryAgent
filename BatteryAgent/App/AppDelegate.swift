@@ -135,7 +135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let settingsView = SettingsContainerView(viewModel: vm, initialTab: tab)
+        let settingsView = SettingsContainerView(viewModel: vm, initialTab: tab, updateChecker: updateChecker ?? UpdateChecker())
         let hostingController = NSHostingController(rootView: settingsView)
 
         let window = NSWindow(contentViewController: hostingController)

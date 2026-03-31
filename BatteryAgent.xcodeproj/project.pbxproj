@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F50AB242F7B940000F6E350 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 1F50AB212F7B7CDE00F6E350 /* Sparkle */; };
 		25412F0CB100CA190D83EB90 /* BatterySliderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A26E40F23CB45A4D55EACB3 /* BatterySliderView.swift */; };
 		2AF49CF5791B7EDAE4B9DB05 /* GeneralTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6922C33F39320EF97A8F2E63 /* GeneralTab.swift */; };
 		47340501CCA308412324315F /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E894B6084418DFC0154998C /* BatteryMonitor.swift */; };
@@ -119,6 +120,17 @@
 		FF09DC63E29E5B6EAE9E12BC /* BatteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		1F50AB222F7B930500F6E350 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1F50AB242F7B940000F6E350 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
 		01AE5F5D5ABE9C34B392B7F0 /* App */ = {
 			isa = PBXGroup;
@@ -138,6 +150,13 @@
 				EEE22866C5EF3FFF4545B295 /* SmartChargingState.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		1F50AB232F7B931E00F6E350 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		1FE891A53E6998E1227E4A4B /* Utilities */ = {
@@ -262,6 +281,7 @@
 				6CC4793E11052CD6FE0E5972 /* BatteryAgentHelper */,
 				940CFA30EB6BED86EA483A42 /* Shared */,
 				6BA1BDC79CE21AFC808C24DB /* Products */,
+				1F50AB232F7B931E00F6E350 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -292,6 +312,7 @@
 				7AF6D9E6626C672BFC56348B /* Sources */,
 				3925A40D54B9C41D892C68F0 /* Resources */,
 				9415BF4989D88A9B7C8E1800 /* Embed Dependencies */,
+				1F50AB222F7B930500F6E350 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -435,7 +456,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.2\nCFBundleVersion=9\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.3\nCFBundleVersion=10\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -515,7 +536,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.2\nCFBundleVersion=9\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.5.3\nCFBundleVersion=10\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

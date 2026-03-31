@@ -256,16 +256,17 @@ struct SmartChargingTab: View {
     // MARK: - Calendar Permission
 
     private var calendarPermissionText: String {
-        if viewModel.smartChargingStatus.calendarAuthorized { return "허용됨" }
         switch viewModel.calendarMonitor.authorizationStatus {
+        case .fullAccess: return "허용됨"
         case .denied, .restricted: return "거부됨"
-        default: return "확인 중…"
+        case .notDetermined: return "확인 중…"
+        @unknown default: return "확인 중…"
         }
     }
 
     private var calendarPermissionColor: Color {
-        if viewModel.smartChargingStatus.calendarAuthorized { return .green }
         switch viewModel.calendarMonitor.authorizationStatus {
+        case .fullAccess: return .green
         case .denied, .restricted: return .red
         default: return .secondary
         }

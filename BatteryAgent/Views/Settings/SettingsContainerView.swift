@@ -3,10 +3,12 @@ import SwiftUI
 struct SettingsContainerView: View {
     @Bindable var viewModel: BatteryViewModel
     @State private var selectedTab: Int
+    var updateChecker: UpdateChecker
 
-    init(viewModel: BatteryViewModel, initialTab: Int = 0) {
+    init(viewModel: BatteryViewModel, initialTab: Int = 0, updateChecker: UpdateChecker = UpdateChecker()) {
         self.viewModel = viewModel
         self._selectedTab = State(initialValue: initialTab)
+        self.updateChecker = updateChecker
     }
 
     var body: some View {
@@ -47,7 +49,7 @@ struct SettingsContainerView: View {
                 }
                 .tag(5)
 
-            GeneralTab(viewModel: viewModel)
+            GeneralTab(viewModel: viewModel, updateChecker: updateChecker)
                 .tabItem {
                     Label("정보", systemImage: "gearshape")
                 }

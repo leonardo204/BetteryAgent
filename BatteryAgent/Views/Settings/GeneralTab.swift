@@ -3,8 +3,8 @@ import ServiceManagement
 
 struct GeneralTab: View {
     @Bindable var viewModel: BatteryViewModel
+    var updateChecker: UpdateChecker
     @State private var launchAtLogin = false
-    @State private var updateChecker = UpdateChecker()
     @State private var autoCheckUpdates = true
 
     var body: some View {
