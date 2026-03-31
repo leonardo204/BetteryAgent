@@ -28,6 +28,53 @@ final class UsagePatternTracker {
 
     init() {
         slots = store.loadUsagePatterns()
+        applyWeeklyDecayIfNeeded()
+    }
+
+    // MARK: - Weekly Decay (Rolling Window)
+
+    /// 주간 단위로 observation 카운트를 감쇠시켜 오래된 패턴이 자연스럽게 사라지도록 함.
+    /// 최근 14일 데이터에 가중치를 두는 롤링 윈도우 효과.
+    private func applyWeeklyDecayIfNeeded() {
+        let lastDecayKey = "last_decay_date"
+        let now = Date()
+
+        guard let lastStr = store.loadMeta(key: lastDecayKey),
+              let lastDate = ISO8601DateFormatter().date(from: lastStr) else {
+            // 첫 실행 — 현재 날짜 기록만
+            store.saveMeta(key: lastDecayKey, value: ISO8601DateFormatter().string(from: now))
+            return
+        }
+
+        let daysSinceDecay = Calendar.current.dateComponents([.day], from: lastDate, to: now).day ?? 0
+        guard daysSinceDecay >= 7 else { return }
+
+        // 경과 주 수만큼 감쇠 적용 (decay factor 0.7 per week)
+        let weeks = daysSinceDecay / 7
+        let decayFactor = pow(0.7, Double(weeks))
+
+        logger.info("Applying weekly decay: \(weeks) week(s), factor=\(decayFactor, format: .fixed(precision: 3))")
+
+        for day in 0..<7 {
+            for slot in 0..<48 {
+                var s = slots[day][slot]
+                guard s.observations > 0 else { continue }
+
+                // observation 카운트 감쇠 (최소 관측 기준 미달 시 패턴 자동 소멸)
+                let decayed = Int(Double(s.observations) * decayFactor)
+                s.observations = max(0, decayed)
+
+                // 관측 0이면 확률도 리셋
+                if s.observations == 0 {
+                    s.probability = 0
+                }
+
+                slots[day][slot] = s
+                store.upsertUsageSlot(day: day, slot: slot, probability: s.probability, observations: s.observations)
+            }
+        }
+
+        store.saveMeta(key: lastDecayKey, value: ISO8601DateFormatter().string(from: now))
     }
 
     // MARK: - Record Observation
