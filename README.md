@@ -44,6 +44,18 @@
 
 > Apple 공증(Notarization)이 완료된 빌드이므로 Gatekeeper 경고 없이 실행됩니다.
 
+### v1.5.2 이전 버전에서 업그레이드
+
+v1.5.1 이하에서 업그레이드하는 경우, 기존 데몬이 잘못된 세션에 로드되어 있을 수 있습니다. 새 앱 설치 **전에** 터미널에서 다음 명령을 실행하여 기존 데몬을 정리해주세요:
+
+```bash
+launchctl bootout gui/$(id -u)/com.zerolive.BatteryAgentHelper 2>/dev/null
+sudo launchctl bootout system/com.zerolive.BatteryAgentHelper 2>/dev/null
+sudo rm -f /tmp/BatteryAgentHelper.sock
+```
+
+이후 새 버전 앱을 설치하면 헬퍼가 자동으로 재설치됩니다.
+
 ### 빌드
 
 ```bash
