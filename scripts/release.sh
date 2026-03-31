@@ -76,6 +76,18 @@ VERSION=$(grep -o 'CFBundleShortVersionString=[0-9][0-9.]*' "$PBXPROJ" \
 
 [ -n "$VERSION" ] || error "버전을 project.pbxproj에서 추출할 수 없습니다."
 
+BUILD_NUMBER=$(grep -o 'CFBundleVersion=[0-9]*' "$PBXPROJ" \
+    | head -1 \
+    | cut -d'=' -f2 \
+    | tr -d '";\\n')
+
+# Info.plist 버전 동기화 (pbxproj → Info.plist)
+INFO_PLIST="$PROJECT_ROOT/$APP_NAME/Resources/Info.plist"
+if [ -f "$INFO_PLIST" ]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$INFO_PLIST" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$INFO_PLIST" 2>/dev/null || true
+fi
+
 ARCHIVE_PATH="$BUILD_DIR/$APP_NAME.xcarchive"
 EXPORT_PATH="$BUILD_DIR/export"
 DMG_STAGING="$BUILD_DIR/dmg_staging"
