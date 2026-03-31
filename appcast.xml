@@ -8,6 +8,29 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.5.9</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.9</link>
+      <sparkle:version>16</sparkle:version>
+      <sparkle:shortVersionString>1.5.9</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.5.9</h2>
+        <ul>
+          <li>Claude Code 연결 진단 강화 (--version 사전 체크, 환경 정보 기록)</li>
+          <li>로그 마스킹 해제 — log stream에서 실제 값 표시</li>
+          <li>Claude Code 설치 안내를 공식 스크립트로 변경</li>
+        </ul>
+      ]]></description>
+      <pubDate>Mon, 31 Mar 2026 23:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.5.9/BatteryAgent-v1.5.9.dmg"
+        sparkle:edSignature="EbOrBk1AxRNngxqxZOmm0KUdd0+nLj21GYA8En0+Au6ecUpjc0KhmAao6hDsbp6yO5kk+278R/PyRvYOe+FlBA=="
+        length="2447632"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.5.8</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.5.8</link>
       <sparkle:version>15</sparkle:version>
