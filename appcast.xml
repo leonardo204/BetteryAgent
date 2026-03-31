@@ -21,8 +21,8 @@
       <pubDate>Mon, 31 Mar 2026 14:00:00 +0900</pubDate>
       <enclosure
         url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.5.1/BatteryAgent-v1.5.1.dmg"
-        sparkle:edSignature="LC6H7KAjgVnWioE4bWeQxc3ctkAbhs74DLcvXIGKsRiqtlBBZcQS7ECvfk0+madTMI+z/rGlO84o0DDYKO+rDg=="
-        length="1407442"
+        sparkle:edSignature="30wwi1h183mKOmVLxsm1fWbK0i72kkyHJVoFFR6Ml4sZqnUfcKDJW7a5gL58BMb4NNtmV0CC5iuekGyv6jTZDQ=="
+        length="1407420"
         type="application/octet-stream"
       />
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
