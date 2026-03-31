@@ -9,19 +9,33 @@ struct PopoverView: View {
         VStack(spacing: 12) {
             // Daemon warning banner
             if !SMCClient.shared.isDaemonRunning {
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                            .font(.caption)
+                        Text("충전 제어를 위해 헬퍼 설치가 필요합니다")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                            .lineLimit(2)
+                        Spacer()
+                        Button("설치") {
+                            SMCClient.shared.installDaemon { _ in }
+                        }
                         .font(.caption)
-                    Text("충전 제어 헬퍼 미설치")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                    Spacer()
-                    Button("설치") {
-                        SMCClient.shared.installDaemon { _ in }
+                        .controlSize(.small)
                     }
-                    .font(.caption)
-                    .controlSize(.small)
+                    if viewModel.daemonInstallFailed {
+                        HStack(spacing: 4) {
+                            Image(systemName: "lock.shield")
+                                .foregroundStyle(.secondary)
+                                .font(.caption2)
+                            Text("시스템 설정 > 개인정보 보호 및 보안에서 허용해주세요")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                        }
+                    }
                 }
                 Divider()
             }

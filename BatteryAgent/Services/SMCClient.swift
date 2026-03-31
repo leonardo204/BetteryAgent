@@ -60,6 +60,27 @@ final class SMCClient: Sendable {
         sendCommand(cmd, completion: completion)
     }
 
+    /// 설치된 헬퍼 데몬의 버전 문자열을 반환한다. 데몬이 응답하지 않으면 nil.
+    func getHelperVersion() -> String? {
+        guard let response = sendViaSocket("version"),
+              response.hasPrefix("OK ") else { return nil }
+        return String(response.dropFirst(3)) // "OK " 제거
+    }
+
+    /// 앱 번들의 CFBundleVersion (빌드 번호)
+    var bundleVersion: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+    }
+
+    /// 설치된 헬퍼와 앱 번들의 버전이 다르면 true
+    var isHelperVersionMismatch: Bool {
+        guard let installed = getHelperVersion() else {
+            // 버전 응답 없음 = 구버전 헬퍼 (version 명령 미지원) → 업데이트 필요
+            return isDaemonRunning
+        }
+        return installed != bundleVersion
+    }
+
     /// Install the helper daemon (one-time, requires admin password)
     func installDaemon(completion: @escaping @Sendable (Bool) -> Void) {
         let helperPath = bundledHelperPath

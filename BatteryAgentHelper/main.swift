@@ -202,6 +202,8 @@ func runDaemon() -> Int32 {
                 response = "OK charging_disabled=\(chargingDisabled) force_discharge=\(forceDischarge)"
             case "ping":
                 response = "OK pong"
+            case "version":
+                response = "OK \(helperVersion)"
             default:
                 response = "ERROR unknown command"
             }

@@ -76,6 +76,11 @@ class BatteryViewModel {
         calibrationManager.state
     }
 
+    // MARK: - Daemon Install State
+
+    /// 헬퍼 설치 시도 후 실패한 경우 true — PopoverView 안내 배너에서 사용
+    var daemonInstallFailed: Bool = false
+
     // MARK: - Smart Charging
 
     var smartChargingStatus: SmartChargingStatus = .disabled
@@ -134,14 +139,43 @@ class BatteryViewModel {
     }
 
     private func checkAndInstallDaemon() {
-        if !SMCClient.shared.isDaemonRunning {
-            logger.info("Daemon not running, attempting install...")
-            SMCClient.shared.installDaemon { [weak self] success in
+        let client = SMCClient.shared
+        let daemonRunning = client.isDaemonRunning
+
+        if daemonRunning {
+            // 데몬 실행 중 — 버전 비교 후 불일치 시 업데이트
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self else { return }
+                let mismatch = client.isHelperVersionMismatch
+                guard mismatch else {
+                    self.logger.info("Daemon is up-to-date (v\(client.bundleVersion))")
+                    return
+                }
+                let installedVer = client.getHelperVersion() ?? "unknown"
+                self.logger.info("Daemon version mismatch: installed=\(installedVer), bundle=\(client.bundleVersion). Updating...")
+                client.installDaemon { [weak self] success in
+                    DispatchQueue.main.async {
+                        if success {
+                            self?.logger.info("Daemon updated to v\(client.bundleVersion)")
+                            self?.daemonInstallFailed = false
+                        } else {
+                            self?.logger.error("Daemon update failed")
+                            self?.daemonInstallFailed = true
+                        }
+                    }
+                }
+            }
+        } else {
+            // 데몬 미실행 — 최초 설치 시도
+            logger.info("Daemon not running, attempting install (bundle v\(client.bundleVersion))...")
+            client.installDaemon { [weak self] success in
                 DispatchQueue.main.async {
                     if success {
-                        self?.logger.info("Daemon installed successfully")
+                        self?.logger.info("Daemon installed successfully (v\(client.bundleVersion))")
+                        self?.daemonInstallFailed = false
                     } else {
                         self?.logger.error("Daemon install failed")
+                        self?.daemonInstallFailed = true
                     }
                 }
             }
