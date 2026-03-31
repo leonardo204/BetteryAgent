@@ -72,16 +72,21 @@ final class CalendarMonitor {
         let needsPolicySwitch = previousPolicy == .accessory
 
         if needsPolicySwitch {
+            logger.info("Calendar: switching to regular policy for permission dialog")
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
+            // 릴리스 빌드에서 충분한 대기 시간 필요
             await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     continuation.resume()
                 }
             }
+            // 한번 더 활성화 시도
+            NSApp.activate(ignoringOtherApps: true)
         }
 
         do {
+            logger.info("Calendar: calling requestFullAccessToEvents()...")
             let granted = try await eventStore.requestFullAccessToEvents()
             isAuthorized = granted
             logger.info("Calendar access result: \(granted)")
