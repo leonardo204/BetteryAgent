@@ -81,7 +81,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             viewModel?.updateBatteryState()
             updateStatusBar()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            NSApp.activate()
+            popover.contentViewController?.view.window?.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
             startEventMonitor()
         }
     }
