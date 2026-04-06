@@ -8,6 +8,28 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.6.5</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.6.5</link>
+      <sparkle:version>22</sparkle:version>
+      <sparkle:shortVersionString>1.6.5</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.6.5 — 패턴 히트맵 UI 개선</h2>
+        <ul>
+          <li>학습 패턴 창 타이틀 명확화 (요일별 집계 데이터임을 표시)</li>
+          <li>하단 블록(12~23시) 날짜 레이블 중복 표시 제거</li>
+        </ul>
+      ]]></description>
+      <pubDate>Mon, 06 Apr 2026 07:58:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.6.5/BatteryAgent-v1.6.5.dmg"
+        sparkle:edSignature="WZnD/9Td4XPnJpvbIB6nT5z1pWbGkTlywOJ5Q+jmFbHO6kIy33lgxADD9ES2U5NugUmQUfEtFPndImiVgDOtBQ=="
+        length="2454618"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.6.4</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.6.4</link>
       <sparkle:version>21</sparkle:version>
