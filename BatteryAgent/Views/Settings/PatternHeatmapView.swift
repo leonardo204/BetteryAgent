@@ -51,7 +51,7 @@ struct PatternHeatmapView: View {
             // Title area
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("패턴 학습 상세 (최근 14일 기준)")
+                    Text("요일별 사용 패턴 (최근 14일 데이터 기반)")
                         .font(.headline)
                     Text("마지막 학습: \(lastDateString)")
                         .font(.caption)
@@ -70,7 +70,7 @@ struct PatternHeatmapView: View {
             heatmapBlock(slotRange: 0..<24, hourLabels: Array(0..<12))
 
             // Lower half: hours 12–23 (slots 24–47)
-            heatmapBlock(slotRange: 24..<48, hourLabels: Array(12..<24))
+            heatmapBlock(slotRange: 24..<48, hourLabels: Array(12..<24), showDateLabel: false)
 
             Divider()
 
@@ -93,7 +93,7 @@ struct PatternHeatmapView: View {
     // MARK: - Heatmap Block (12 hours = 24 slots)
 
     @ViewBuilder
-    private func heatmapBlock(slotRange: Range<Int>, hourLabels: [Int]) -> some View {
+    private func heatmapBlock(slotRange: Range<Int>, hourLabels: [Int], showDateLabel: Bool = true) -> some View {
         VStack(alignment: .leading, spacing: cellSpacing) {
             // Time header row — each hour label spans 2 cells
             HStack(spacing: 0) {
@@ -113,8 +113,10 @@ struct PatternHeatmapView: View {
                 HStack(spacing: cellSpacing) {
                     // Day label
                     let dayName = dayLabelMap[dayIndex] ?? ""
-                    let dateStr = recentDateLabel(for: dayIndex)
-                    Text("\(dayName) (\(dateStr))")
+                    let label = showDateLabel
+                        ? "\(dayName) (\(recentDateLabel(for: dayIndex)))"
+                        : "\(dayName)"
+                    Text(label)
                         .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(.secondary)
                         .frame(width: dayLabelWidth, alignment: .trailing)
