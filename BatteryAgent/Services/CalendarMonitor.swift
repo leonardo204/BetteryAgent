@@ -148,6 +148,7 @@ final class CalendarMonitor {
 
         let filtered = events
             .filter { !$0.isAllDay }
+            .filter { $0.startDate > now }  // 시작 시간이 현재 이후인 일정만
             .filter { event in
                 let duration = event.endDate.timeIntervalSince(event.startDate) / 60
                 return duration >= 30
@@ -207,6 +208,7 @@ final class CalendarMonitor {
 
         return events
             .filter { !$0.isAllDay }
+            .filter { $0.startDate > now }  // 시작 시간이 현재 이후인 일정만
             .filter { event in
                 let duration = event.endDate.timeIntervalSince(event.startDate) / 60
                 return duration >= 30
