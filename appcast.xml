@@ -8,6 +8,30 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.7.0</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.7.0</link>
+      <sparkle:version>23</sparkle:version>
+      <sparkle:shortVersionString>1.7.0</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.7.0 — 스마트 충전 개선 + 풀충전 버튼</h2>
+        <ul>
+          <li>스마트 충전 활성 시 상태 텍스트/아이콘 정확하게 표시</li>
+          <li>충전 제한 슬라이더 변경 시 즉시 충전 정책 반영</li>
+          <li>풀충전 버튼: 100%까지 충전 후 자동으로 이전 제한 복원</li>
+          <li>캘린더 연동 시 다가오는 일정 1-2개 팝오버에 표시</li>
+        </ul>
+      ]]></description>
+      <pubDate>Tue, 08 Apr 2026 16:30:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.7.0/BatteryAgent-v1.7.0.dmg"
+        sparkle:edSignature="ChQwXTN8PcAJyMDJ+9KNvZhQaNM4mrGUzOPO3Ib6WS7scxrRk2hqIQV8AVeePxNYs0oXgaJuAPUI7CwqYUReBw=="
+        length="2479463"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.6.5</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.6.5</link>
       <sparkle:version>22</sparkle:version>
