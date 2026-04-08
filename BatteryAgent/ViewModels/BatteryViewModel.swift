@@ -16,6 +16,13 @@ class BatteryViewModel {
             UserDefaults.standard.set(chargeLimit, forKey: Constants.UserDefaultsKey.chargeLimit)
             batteryState.chargeLimit = chargeLimit
             updateRechargeThreshold()
+            if isManaging {
+                if chargeLimit > oldValue {
+                    hasNotifiedCompletion = false
+                }
+                evaluateChargingPolicy()
+            }
+            NotificationCenter.default.post(name: .statusBarNeedsUpdate, object: nil)
         }
     }
 
@@ -124,6 +131,7 @@ class BatteryViewModel {
     private var historyTimer: Timer?
     private var patternTimer: Timer?
     private var hasNotifiedCompletion = false
+    private var isEvaluatingPolicy = false
     private let logger = Logger(
         subsystem: Constants.appBundleIdentifier,
         category: "BatteryViewModel"
@@ -287,6 +295,31 @@ class BatteryViewModel {
         isManaging.toggle()
     }
 
+    /// 풀충전 요청 — chargeLimit을 100%로 설정하고 즉시 충전 시작
+    private(set) var previousChargeLimit: Int? = nil
+
+    func requestFullCharge() {
+        logger.info("Full charge requested (current limit: \(self.chargeLimit)%)")
+        if chargeLimit < 100 {
+            previousChargeLimit = chargeLimit
+        }
+        chargeLimit = 100
+    }
+
+    /// 풀충전 취소 — 이전 chargeLimit으로 복원
+    func cancelFullCharge() {
+        if let prev = previousChargeLimit {
+            logger.info("Full charge cancelled, restoring limit to \(prev)%")
+            chargeLimit = prev
+            previousChargeLimit = nil
+        }
+    }
+
+    /// 풀충전 모드 활성 여부
+    var isFullChargeMode: Bool {
+        previousChargeLimit != nil && chargeLimit == 100
+    }
+
     func forceDischarge() {
         logger.info("Force discharge requested")
         smcClient.setForceDischarge(true) { _ in }
@@ -386,6 +419,9 @@ class BatteryViewModel {
 
     private func evaluateChargingPolicy() {
         guard smcClient.isDaemonRunning else { return }
+        guard !isEvaluatingPolicy else { return }
+        isEvaluatingPolicy = true
+        defer { isEvaluatingPolicy = false }
 
         let charge = batteryState.currentCharge
         let pluggedIn = batteryState.isPluggedIn
@@ -465,6 +501,15 @@ class BatteryViewModel {
             NotificationManager.shared.sendSmartChargingCompleteNotification()
         }
 
+        // 풀충전 모드: 100% 도달 시 자동으로 이전 limit 복원
+        if isFullChargeMode && charge >= 100 {
+            logger.info("Full charge complete, restoring limit to \(self.previousChargeLimit ?? 80)%")
+            let prev = previousChargeLimit ?? Constants.defaultChargeLimit
+            previousChargeLimit = nil
+            chargeLimit = prev
+            return
+        }
+
         // If smart charging is active and we're below the effective limit, ensure charging is enabled
         if effectiveLimit == 100 && batteryState.currentCharge < 100 && batteryState.isPluggedIn {
             smcClient.setForceDischarge(false) { _ in }
@@ -520,11 +565,16 @@ class BatteryViewModel {
 
         // Determine next calendar event if integration is enabled
         let nextCalendarEvent: Date?
+        var upcomingCalendarEvents: [UpcomingCalendarEvent] = []
         if isCalendarIntegrationEnabled {
             let leadMinutes = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKey.defaultLeadMinutes)
             let effectiveLead = leadMinutes > 0 ? leadMinutes : Constants.defaultSmartLeadMinutes
             let upcomingEvents = calendarMonitor.fetchUpcomingEvents(leadMinutes: effectiveLead)
             nextCalendarEvent = upcomingEvents.first?.startDate
+            // 다가오는 일정 최대 2개 전달
+            upcomingCalendarEvents = Array(upcomingEvents.prefix(2)).map {
+                UpcomingCalendarEvent(title: $0.title, startDate: $0.startDate, durationMinutes: $0.durationMinutes)
+            }
             if let next = nextCalendarEvent {
                 logger.info("Next calendar event: \(next), lead=\(effectiveLead)min")
             } else {
@@ -552,7 +602,8 @@ class BatteryViewModel {
             calendarEnabled: isCalendarIntegrationEnabled,
             calendarAuthorized: calendarMonitor.authorizationStatus == EKAuthorizationStatus.fullAccess,
             nextCalendarEvent: nextCalendarEvent,
-            currentCharge: batteryState.currentCharge
+            currentCharge: batteryState.currentCharge,
+            upcomingCalendarEvents: upcomingCalendarEvents
         )
     }
 

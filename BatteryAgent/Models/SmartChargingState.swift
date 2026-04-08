@@ -66,6 +66,13 @@ struct ChargeRule: Codable, Identifiable {
 
 // MARK: - Smart Charging Status
 
+struct UpcomingCalendarEvent: Identifiable {
+    let id = UUID()
+    let title: String
+    let startDate: Date
+    let durationMinutes: Int
+}
+
 struct SmartChargingStatus {
     var isEnabled: Bool
     var isSmartCharging: Bool
@@ -78,6 +85,7 @@ struct SmartChargingStatus {
     var calendarAuthorized: Bool = false
     var nextCalendarEvent: Date? = nil
     var currentCharge: Int = 0
+    var upcomingCalendarEvents: [UpcomingCalendarEvent] = []
 
     static let disabled = SmartChargingStatus(
         isEnabled: false,

@@ -73,13 +73,48 @@ struct PopoverView: View {
                 isCharging: viewModel.batteryState.isCharging
             )
 
-            // Toggle + Settings
+            // Toggle + Full Charge + Settings
             HStack {
                 Text("활성화")
 
                 CustomToggle(isOn: $viewModel.isManaging, onColor: .blue)
 
                 Spacer()
+
+                // 풀충전 버튼
+                if viewModel.isManaging && viewModel.chargeLimit < 100 {
+                    Button {
+                        viewModel.requestFullCharge()
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "battery.100.bolt")
+                                .font(.caption)
+                            Text("풀충전")
+                                .font(.caption)
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                    }
+                    .buttonStyle(.borderless)
+                    .background(.green.opacity(0.15), in: Capsule())
+                    .help("100%까지 충전 후 원래 제한으로 복원")
+                } else if viewModel.isManaging && viewModel.isFullChargeMode {
+                    Button {
+                        viewModel.cancelFullCharge()
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "xmark.circle")
+                                .font(.caption)
+                            Text("풀충전 취소")
+                                .font(.caption)
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                    }
+                    .buttonStyle(.borderless)
+                    .background(.orange.opacity(0.15), in: Capsule())
+                    .help("풀충전 취소, 이전 제한으로 복원")
+                }
 
                 Button {
                     onOpenSettings()
@@ -144,6 +179,9 @@ struct PopoverView: View {
         if !isPlugged && !viewModel.batteryState.isCharging {
             return "minus.plus.batteryblock"
         }
+        if viewModel.smartChargingStatus.isSmartCharging && viewModel.isManaging {
+            return "bolt.fill"
+        }
         if isOverLimit {
             return "powerplug.fill"
         } else if viewModel.batteryState.isCharging {
@@ -158,6 +196,7 @@ struct PopoverView: View {
     private var statusColor: Color {
         if viewModel.isThermalThrottled { return .red }
         if !isPlugged && !viewModel.batteryState.isCharging { return .secondary }
+        if viewModel.smartChargingStatus.isSmartCharging && viewModel.isManaging { return .orange }
         if isOverLimit { return .orange }
         if viewModel.batteryState.isCharging { return .green }
         if isPlugged { return .yellow }
@@ -174,8 +213,15 @@ struct PopoverView: View {
         if isOverLimit {
             return "충전 차단 중 → \(viewModel.chargeLimit)%까지 대기"
         }
+        if viewModel.smartChargingStatus.isSmartCharging && viewModel.isManaging {
+            if viewModel.batteryState.isCharging {
+                return "스마트 충전 중"
+            } else {
+                return "스마트 충전 대기 중"
+            }
+        }
         if viewModel.batteryState.isCharging { return "충전 중" }
-        if viewModel.isManaging && viewModel.batteryState.currentCharge == viewModel.chargeLimit {
+        if viewModel.isManaging && viewModel.batteryState.currentCharge >= viewModel.chargeLimit {
             return "제한 유지 중"
         }
         if isPlugged {

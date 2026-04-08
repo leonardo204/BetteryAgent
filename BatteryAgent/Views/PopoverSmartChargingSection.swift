@@ -38,6 +38,38 @@ struct PopoverSmartChargingSection: View {
                 }
             }
 
+            // 다가오는 캘린더 일정 표시
+            if status.calendarEnabled && !status.upcomingCalendarEvents.isEmpty {
+                Divider()
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar")
+                        .foregroundStyle(.blue)
+                        .font(.caption)
+                    Text("다가오는 일정")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                }
+
+                ForEach(status.upcomingCalendarEvents) { event in
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 5, height: 5)
+                        Text(formatEventTime(event.startDate))
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.blue)
+                        Text(event.title)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                        Spacer()
+                        Text("\(event.durationMinutes)분")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+
             // Learning in progress (not yet complete)
             if !status.isLearningComplete {
                 HStack(spacing: 6) {
