@@ -8,6 +8,29 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.7.1</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.7.1</link>
+      <sparkle:version>24</sparkle:version>
+      <sparkle:shortVersionString>1.7.1</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.7.1 — 캘린더 일정 표시 개선</h2>
+        <ul>
+          <li>팝오버에 다가오는 일정 표시 (충전 필요 ⚡ / 일반 ○ 구분)</li>
+          <li>설정 > 스마트충전에 24시간 내 전체 일정 목록 + 충전 배지</li>
+          <li>일정 없을 때 "예정된 일정 없음" 안내 표시</li>
+        </ul>
+      ]]></description>
+      <pubDate>Tue, 08 Apr 2026 17:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.7.1/BatteryAgent-v1.7.1.dmg"
+        sparkle:edSignature="ul3jiqV7p4d+YyYvdZs5SaxDMh7D9tk4lO1Cr9giTdjnFXGFynA8agupOTv/j9PEWRFIYWyWQETukHNBWzAVCQ=="
+        length="2502841"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.7.0</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.7.0</link>
       <sparkle:version>23</sparkle:version>
