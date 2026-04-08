@@ -99,5 +99,29 @@ class BatteryMonitor {
         if let adapterDetails = props["AdapterDetails"] as? [String: Any] {
             state.adapterWatts = adapterDetails["Watts"] as? Int ?? 0
         }
+
+        // Charger diagnostics from ChargerData
+        let chargerData = props["ChargerData"] as? [String: Any]
+        if let chargerData {
+            state.notChargingReason = chargerData["NotChargingReason"] as? Int ?? 0
+            state.chargerInhibitReason = chargerData["ChargerInhibitReason"] as? Int ?? 0
+        }
+
+        // macOS system charge limit detection (Tahoe 26.4+)
+        let chargeLimitKeys = ["ChargeLimit", "UserChargeLimit", "MaxChargeLevel", "BCLM"]
+        for key in chargeLimitKeys {
+            if let limit = props[key] as? Int, limit >= 20, limit < 100 {
+                state.systemChargeLimit = limit
+                break
+            }
+        }
+        if state.systemChargeLimit == nil, let chargerData {
+            for key in chargeLimitKeys {
+                if let limit = chargerData[key] as? Int, limit >= 20, limit < 100 {
+                    state.systemChargeLimit = limit
+                    break
+                }
+            }
+        }
     }
 }

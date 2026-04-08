@@ -4,7 +4,7 @@ import Foundation
 // Runs as root LaunchDaemon, listens for commands via Unix socket
 
 let socketPath = "/tmp/BatteryAgentHelper.sock"
-let helperVersion = "1.7.2"
+let helperVersion = "1.8.0"
 
 func main() -> Int32 {
     guard CommandLine.arguments.count >= 2 else {

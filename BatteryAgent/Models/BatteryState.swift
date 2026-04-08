@@ -21,6 +21,13 @@ struct BatteryState {
         return min(100, maxCapacity * 100 / designCapacity)
     }
 
+    // Charger diagnostics
+    var notChargingReason: Int = 0
+    var chargerInhibitReason: Int = 0
+
+    // macOS system charge limit (26.4+)
+    var systemChargeLimit: Int? = nil
+
     // Policy
     var chargeLimit: Int = 80
     var dischargeFloor: Int = 20

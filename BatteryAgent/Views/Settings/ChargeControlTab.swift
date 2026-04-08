@@ -56,6 +56,17 @@ struct ChargeControlTab: View {
                     Text("100")
                         .font(.caption)
                 }
+                if let conflict = viewModel.systemChargeLimitConflict {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.yellow)
+                        Text(conflict)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(8)
+                    .background(Color.yellow.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                }
             }
 
             Section("방전 하한") {
@@ -135,6 +146,27 @@ struct ChargeControlTab: View {
                     Text(thermalHysteresisDescription)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("macOS 배터리 설정") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundStyle(.blue)
+                        Text("최적화된 배터리 충전을 비활성화하세요")
+                            .font(.caption.bold())
+                    }
+                    Text("macOS의 '최적화된 배터리 충전'이 활성화되어 있으면 BatteryAgent의 충전 제어와 충돌할 수 있습니다. 시스템 설정 > 배터리 > 충전에서 비활성화하세요.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Button("시스템 배터리 설정 열기") {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.settings.battery") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .font(.caption)
+                    .controlSize(.small)
                 }
             }
         }

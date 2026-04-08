@@ -320,6 +320,17 @@ class BatteryViewModel {
         previousChargeLimit != nil && chargeLimit == 100
     }
 
+    /// macOS 시스템 충전 한도와 BatteryAgent 설정 간 충돌 정보
+    var systemChargeLimitConflict: String? {
+        guard let sysLimit = batteryState.systemChargeLimit else { return nil }
+        if sysLimit < chargeLimit {
+            return "macOS 충전 한도(\(sysLimit)%)가 BatteryAgent 설정(\(chargeLimit)%)보다 낮아 목표에 도달하지 못할 수 있습니다"
+        } else if sysLimit > chargeLimit {
+            return "macOS 충전 한도: \(sysLimit)% (BatteryAgent가 \(chargeLimit)%에서 먼저 차단)"
+        }
+        return nil
+    }
+
     func forceDischarge() {
         logger.info("Force discharge requested")
         smcClient.setForceDischarge(true) { _ in }

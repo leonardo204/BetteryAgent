@@ -14,7 +14,7 @@ enum MenuBarIconProvider {
         let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
 
         switch state {
-        case .charging, .smartCharging, .pluggedIn:
+        case .charging, .smartCharging:
             if level >= 100 {
                 // 100%: battery.100percent.bolt 단일 심볼
                 return NSImage(
@@ -26,7 +26,7 @@ enum MenuBarIconProvider {
                 return compositeChargingIcon(for: level, config: config)
             }
 
-        case .forceDischarging, .onBattery:
+        case .pluggedIn, .forceDischarging, .onBattery:
             let iconName = baseIconName(for: level)
             return NSImage(
                 systemSymbolName: iconName,

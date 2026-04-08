@@ -40,6 +40,20 @@ struct PopoverView: View {
                 Divider()
             }
 
+            // macOS charge limit conflict warning
+            if let conflict = viewModel.systemChargeLimitConflict {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.yellow)
+                        .font(.caption)
+                    Text(conflict)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+                Divider()
+            }
+
             // Status row
             HStack {
                 Image(systemName: statusIcon)
