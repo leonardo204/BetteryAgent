@@ -8,6 +8,31 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.8.0</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.8.0</link>
+      <sparkle:version>26</sparkle:version>
+      <sparkle:shortVersionString>1.8.0</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.8.0 — macOS 충전 한도 감지 + 메뉴바 아이콘 개선</h2>
+        <ul>
+          <li>충전 차단 중 메뉴바에서 번개 아이콘 제거 (충전 중이 아님을 시각적으로 구분)</li>
+          <li>macOS 시스템 충전 한도 감지 인프라 (Tahoe 26.4+ 대비)</li>
+          <li>macOS 충전 한도와 BatteryAgent 설정 충돌 시 경고 표시</li>
+          <li>IORegistry ChargerData 진단 정보 수집 (NotChargingReason, ChargerInhibitReason)</li>
+          <li>"최적화된 배터리 충전" 비활성화 안내 + 시스템 설정 바로가기</li>
+        </ul>
+      ]]></description>
+      <pubDate>Tue, 08 Apr 2026 18:30:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.8.0/BatteryAgent-v1.8.0.dmg"
+        sparkle:edSignature="lX64qexHZGCQ5gVK9EZoHFQzdoJQdgrbWESuIeuwXsg1RNpCCrn3baXC0IWumbC4N4vIxxuAtFMit+DtK5rZCw=="
+        length="2520732"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.7.2</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.7.2</link>
       <sparkle:version>25</sparkle:version>
