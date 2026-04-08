@@ -190,6 +190,41 @@ final class CalendarMonitor {
         return laptopEvents
     }
 
+    /// 전체 일정 반환 (충전 필요 여부 포함, 필터링 없음)
+    func fetchAllUpcomingEvents() -> [UpcomingEvent] {
+        guard isAuthorized || authorizationStatus == .fullAccess else { return [] }
+
+        let now = Date()
+        let endDate = Calendar.current.date(byAdding: .hour, value: 24, to: now)!
+
+        let predicate = eventStore.predicateForEvents(
+            withStart: now,
+            end: endDate,
+            calendars: nil
+        )
+
+        let events = eventStore.events(matching: predicate)
+
+        return events
+            .filter { !$0.isAllDay }
+            .filter { event in
+                let duration = event.endDate.timeIntervalSince(event.startDate) / 60
+                return duration >= 30
+            }
+            .map { event in
+                let title = event.title ?? ""
+                let duration = Int(event.endDate.timeIntervalSince(event.startDate) / 60)
+                let needsLaptop = classifyEvent(title: title, durationMinutes: duration)
+                return UpcomingEvent(
+                    title: title,
+                    startDate: event.startDate,
+                    endDate: event.endDate,
+                    durationMinutes: duration,
+                    needsLaptop: needsLaptop
+                )
+            }
+    }
+
     // MARK: - Event Classification
 
     /// 키워드 기반 분류 (폴백) — 캐시에 AI 결과 있으면 우선 사용

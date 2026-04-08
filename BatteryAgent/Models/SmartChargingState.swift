@@ -71,6 +71,7 @@ struct UpcomingCalendarEvent: Identifiable {
     let title: String
     let startDate: Date
     let durationMinutes: Int
+    let needsCharging: Bool  // 충전 필요 이벤트 여부
 }
 
 struct SmartChargingStatus {

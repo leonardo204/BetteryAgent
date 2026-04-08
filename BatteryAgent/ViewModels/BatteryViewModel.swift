@@ -571,9 +571,10 @@ class BatteryViewModel {
             let effectiveLead = leadMinutes > 0 ? leadMinutes : Constants.defaultSmartLeadMinutes
             let upcomingEvents = calendarMonitor.fetchUpcomingEvents(leadMinutes: effectiveLead)
             nextCalendarEvent = upcomingEvents.first?.startDate
-            // 다가오는 일정 최대 2개 전달
-            upcomingCalendarEvents = Array(upcomingEvents.prefix(2)).map {
-                UpcomingCalendarEvent(title: $0.title, startDate: $0.startDate, durationMinutes: $0.durationMinutes)
+            // 전체 일정 전달 (충전 필요 여부 포함)
+            let allEvents = calendarMonitor.fetchAllUpcomingEvents()
+            upcomingCalendarEvents = allEvents.map {
+                UpcomingCalendarEvent(title: $0.title, startDate: $0.startDate, durationMinutes: $0.durationMinutes, needsCharging: $0.needsLaptop)
             }
             if let next = nextCalendarEvent {
                 logger.info("Next calendar event: \(next), lead=\(effectiveLead)min")

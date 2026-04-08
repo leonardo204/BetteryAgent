@@ -50,14 +50,20 @@ struct PopoverSmartChargingSection: View {
                         .foregroundStyle(.secondary)
                 }
 
-                ForEach(status.upcomingCalendarEvents) { event in
+                ForEach(status.upcomingCalendarEvents.prefix(2)) { event in
                     HStack(spacing: 4) {
-                        Circle()
-                            .fill(Color.blue)
-                            .frame(width: 5, height: 5)
+                        if event.needsCharging {
+                            Image(systemName: "bolt.fill")
+                                .foregroundStyle(.orange)
+                                .font(.caption2)
+                        } else {
+                            Circle()
+                                .fill(Color.secondary.opacity(0.5))
+                                .frame(width: 5, height: 5)
+                        }
                         Text(formatEventTime(event.startDate))
                             .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(event.needsCharging ? .orange : .blue)
                         Text(event.title)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
@@ -67,6 +73,16 @@ struct PopoverSmartChargingSection: View {
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
                     }
+                }
+            } else if status.calendarEnabled {
+                Divider()
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar.badge.minus")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                    Text("예정된 일정 없음")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 

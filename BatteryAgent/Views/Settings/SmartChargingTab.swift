@@ -158,6 +158,65 @@ struct SmartChargingTab: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+
+                    // 다가오는 일정 목록
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("다가오는 일정 (24시간)")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+
+                        if viewModel.smartChargingStatus.upcomingCalendarEvents.isEmpty {
+                            HStack {
+                                Image(systemName: "calendar.badge.minus")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                                Text("예정된 일정 없음")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 2)
+                        } else {
+                            ForEach(viewModel.smartChargingStatus.upcomingCalendarEvents) { event in
+                                HStack(spacing: 6) {
+                                    // 충전 필요 여부 아이콘
+                                    if event.needsCharging {
+                                        Image(systemName: "bolt.fill")
+                                            .foregroundStyle(.orange)
+                                            .font(.caption2)
+                                            .help("충전 필요 일정")
+                                    } else {
+                                        Image(systemName: "circle")
+                                            .foregroundStyle(.secondary)
+                                            .font(.caption2)
+                                    }
+
+                                    Text(formatEventTime(event.startDate))
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(event.needsCharging ? .orange : .primary)
+
+                                    Text(event.title)
+                                        .font(.caption)
+                                        .lineLimit(1)
+
+                                    Spacer()
+
+                                    Text(formatDuration(event.durationMinutes))
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+
+                                    if event.needsCharging {
+                                        Text("충전")
+                                            .font(.caption2.bold())
+                                            .foregroundStyle(.white)
+                                            .padding(.horizontal, 4)
+                                            .padding(.vertical, 1)
+                                            .background(.orange, in: Capsule())
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
             } header: {
                 Label("캘린더 연동", systemImage: "calendar.badge.clock")
@@ -305,6 +364,21 @@ struct SmartChargingTab: View {
         let hour = slot / 2
         let minute = (slot % 2) * 30
         return String(format: "%02d:%02d", hour, minute)
+    }
+
+    private func formatEventTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+
+    private func formatDuration(_ minutes: Int) -> String {
+        if minutes >= 60 {
+            let h = minutes / 60
+            let m = minutes % 60
+            return m > 0 ? "\(h)시간 \(m)분" : "\(h)시간"
+        }
+        return "\(minutes)분"
     }
 }
 
