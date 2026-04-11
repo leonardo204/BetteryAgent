@@ -24,6 +24,8 @@ npm-debug.log*
 
 # Claude Code runtime
 .claude/db/context.db
+.claude/db/context.db-shm
+.claude/db/context.db-wal
 .claude/.ctx_state
 .claude/.backup-*
 .claude/.ralph_state
