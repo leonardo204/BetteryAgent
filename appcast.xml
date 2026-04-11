@@ -8,6 +8,33 @@
     <language>ko</language>
 
     <item>
+      <title>BatteryAgent 1.9.0</title>
+      <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.9.0</link>
+      <sparkle:version>27</sparkle:version>
+      <sparkle:shortVersionString>1.9.0</sparkle:shortVersionString>
+      <description><![CDATA[
+        <h2>v1.9.0 — macOS 충전 한도 경합 UX 투명화 + 1회 알림</h2>
+        <ul>
+          <li>macOS 시스템 충전 한도와 BatteryAgent 설정의 경합 상태를 배지로 투명 표시 (5개 케이스)</li>
+          <li>충전 제어 설정 탭에 진단 섹션: OS 한도, NotChargingReason, 실제 차단 주체, 비트 해석</li>
+          <li>sleep→wakeup 및 로그인 시 충돌 1회 알림 (24시간 스누즈 지원, 재시작 후에도 중복 차단)</li>
+          <li>"BatteryAgent를 OS 한도에 맞추기" 원클릭 자동 조정</li>
+          <li>"macOS 시스템 설정 열기" 딥링크 — BA가 제어 불가한 경우 OS 설정으로 유도</li>
+          <li>케이스별 스누즈 키 분리 — 한 충돌 해소가 다른 충돌 스누즈를 건드리지 않음</li>
+          <li>osBlocking 판정 정확도 향상: chargerInhibitReason 가드로 false positive 제거</li>
+        </ul>
+      ]]></description>
+      <pubDate>Sat, 11 Apr 2026 18:36:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/leonardo204/BetteryAgent/releases/download/v1.9.0/BatteryAgent-v1.9.0.dmg"
+        sparkle:edSignature="S2wX5ls6ueS02sJmc5bIF0TyH4yzr6NwFcVzkU79ill0ru+xA4iVVFOfWLLFG+iHHcIdh5nWuHyCpYx51yZ6Bg=="
+        length="2566385"
+        type="application/octet-stream"
+      />
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+    </item>
+
+    <item>
       <title>BatteryAgent 1.8.0</title>
       <link>https://github.com/leonardo204/BetteryAgent/releases/tag/v1.8.0</link>
       <sparkle:version>26</sparkle:version>
