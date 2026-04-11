@@ -2,6 +2,7 @@ import Foundation
 import os.log
 import Observation
 import EventKit
+import AppKit
 
 @MainActor
 @Observable
@@ -21,6 +22,19 @@ class BatteryViewModel {
                     hasNotifiedCompletion = false
                 }
                 evaluateChargingPolicy()
+            }
+            // C2: chargeLimit 변경 직후의 conflictState를 current로 사용
+            // (이전 상태는 이미 batteryState.chargeLimit이 바뀐 후이므로 current가 곧 새 상태)
+            // chargeLimit 변경으로 인해 해소될 수 있는 것은 osLower뿐이므로
+            // 이전값(oldValue)을 기반으로 이전 conflictState를 재구성하는 대신,
+            // setChargeLimit(_:) 헬퍼를 통해 정확한 이전 상태를 캡처한다.
+            // didSet 내에서는 oldValue == chargeLimit(Int)이므로 이전 conflictState를
+            // 직접 얻을 수 없음. 단순화: chargeLimit 변경 시 osLower 스누즈만 조건부 삭제.
+            let current = conflictState
+            if case .osLower = current {
+                // osLower 여전히 active — 스누즈 유지
+            } else {
+                conflictNotifier?.clearSnooze(for: "osLower")
             }
             NotificationCenter.default.post(name: .statusBarNeedsUpdate, object: nil)
         }
@@ -132,6 +146,7 @@ class BatteryViewModel {
     private var patternTimer: Timer?
     private var hasNotifiedCompletion = false
     private var isEvaluatingPolicy = false
+    private var conflictNotifier: ConflictNotifier?
     private let logger = Logger(
         subsystem: Constants.appBundleIdentifier,
         category: "BatteryViewModel"
@@ -158,6 +173,7 @@ class BatteryViewModel {
         startHistoryRecording()
         startPatternObservation()
         startPowerSourceMonitoring()
+        conflictNotifier = ConflictNotifier(viewModel: self)
 
         Task {
             await NotificationManager.shared.requestAuthorization()
@@ -320,15 +336,45 @@ class BatteryViewModel {
         previousChargeLimit != nil && chargeLimit == 100
     }
 
-    /// macOS 시스템 충전 한도와 BatteryAgent 설정 간 충돌 정보
-    var systemChargeLimitConflict: String? {
-        guard let sysLimit = batteryState.systemChargeLimit else { return nil }
-        if sysLimit < chargeLimit {
-            return "macOS 충전 한도(\(sysLimit)%)가 BatteryAgent 설정(\(chargeLimit)%)보다 낮아 목표에 도달하지 못할 수 있습니다"
-        } else if sysLimit > chargeLimit {
-            return "macOS 충전 한도: \(sysLimit)% (BatteryAgent가 \(chargeLimit)%에서 먼저 차단)"
+    /// 현재 OS-BA 충돌 상태 (computed)
+    var conflictState: ConflictState {
+        ConflictAnalyzer.analyze(state: batteryState, chargeLimit: chargeLimit, isManaging: isManaging)
+    }
+
+    /// Popover in-app alert 소비용
+    var pendingConflictAlert: ConflictState? = nil
+
+    func consumeConflictAlert() {
+        pendingConflictAlert = nil
+    }
+
+    /// OS 한도에 맞게 chargeLimit 조정 (케이스 B)
+    func adjustChargeLimitToSystem() {
+        if case .osLower(_, let osLimit) = conflictState {
+            chargeLimit = osLimit
         }
-        return nil
+    }
+
+    /// 충돌 알림 24시간 스누즈
+    func snoozeConflictAlert() {
+        conflictNotifier?.snooze(for: conflictState)
+    }
+
+    /// 시스템 배터리 설정 열기
+    func openSystemBatterySettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.settings.battery") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    /// 현재 충돌 상태에 대해 스누즈 중인지 여부
+    var conflictNotifierIsSnoozed: Bool {
+        conflictNotifier?.isSnoozed(for: conflictState) ?? false
+    }
+
+    /// 스누즈 해제
+    func clearConflictSnooze() {
+        conflictNotifier?.clearSnooze()
     }
 
     func forceDischarge() {

@@ -40,17 +40,16 @@ struct PopoverView: View {
                 Divider()
             }
 
-            // macOS charge limit conflict warning
-            if let conflict = viewModel.systemChargeLimitConflict {
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.yellow)
-                        .font(.caption)
-                    Text(conflict)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
+            // OS-BA 충돌 배지
+            if viewModel.conflictState != .none {
+                Button {
+                    if viewModel.conflictState.needsUserAttention {
+                        viewModel.pendingConflictAlert = viewModel.conflictState
+                    }
+                } label: {
+                    ConflictBadgeView(state: viewModel.conflictState, style: .compact)
                 }
+                .buttonStyle(.plain)
                 Divider()
             }
 
@@ -166,6 +165,65 @@ struct PopoverView: View {
         }
         .padding(16)
         .frame(width: 280)
+        .alert(
+            conflictAlertTitle,
+            isPresented: Binding(
+                get: { viewModel.pendingConflictAlert != nil },
+                set: { if !$0 { viewModel.consumeConflictAlert() } }
+            ),
+            presenting: viewModel.pendingConflictAlert
+        ) { state in
+            conflictAlertActions(state: state)
+        } message: { state in
+            Text(state.subtitle)
+        }
+    }
+
+    // MARK: - Conflict Alert Helpers
+
+    private var conflictAlertTitle: String {
+        switch viewModel.pendingConflictAlert {
+        case .osLower:
+            return "충전 한도 충돌"
+        case .osBlocking:
+            return "BatteryAgent가 제어할 수 없습니다"
+        default:
+            return "충돌 감지"
+        }
+    }
+
+    @ViewBuilder
+    private func conflictAlertActions(state: ConflictState) -> some View {
+        switch state {
+        case .osLower(_, let osLimit):
+            Button("BA를 \(osLimit)%로 맞추기") {
+                viewModel.adjustChargeLimitToSystem()
+                viewModel.consumeConflictAlert()
+            }
+            Button("시스템 설정 열기") {
+                viewModel.openSystemBatterySettings()
+                viewModel.consumeConflictAlert()
+            }
+            Button("24시간 무시") {
+                viewModel.snoozeConflictAlert()
+                viewModel.consumeConflictAlert()
+            }
+            Button("취소", role: .cancel) {
+                viewModel.consumeConflictAlert()
+            }
+        case .osBlocking:
+            Button("시스템 설정 열기") {
+                viewModel.openSystemBatterySettings()
+                viewModel.consumeConflictAlert()
+            }
+            Button("확인", role: .cancel) {
+                viewModel.consumeConflictAlert()
+            }
+        default:
+            Button("확인", role: .cancel) {
+                viewModel.consumeConflictAlert()
+            }
+        }
     }
 
     // MARK: - Computed

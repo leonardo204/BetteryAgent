@@ -70,4 +70,34 @@ final class NotificationManager: Sendable {
         )
         UNUserNotificationCenter.current().add(request)
     }
+
+    func sendChargeConflictNotification(state: ConflictState) {
+        let content = UNMutableNotificationContent()
+        content.sound = .default
+
+        switch state {
+        case .osLower(let baLimit, let osLimit):
+            content.title = "충전 한도 충돌"
+            content.body = "macOS 충전 한도(\(osLimit)%)가 BatteryAgent(\(baLimit)%)보다 낮습니다. BatteryAgent를 \(osLimit)%로 조정할 수 있습니다."
+        case .osBlocking(let osLimit, _):
+            content.title = "BatteryAgent가 제어할 수 없습니다"
+            content.body = "macOS 시스템 설정 > 배터리의 충전 한도(\(osLimit)%)를 확인해주세요."
+        default:
+            return
+        }
+
+        // W1: stateKey 기반 고정 ID — 앱 재시작 후에도 UNCenter가 자동으로 덮어써 중복 알림 차단
+        let stateID: String
+        switch state {
+        case .osLower:    stateID = "osLower"
+        case .osBlocking: stateID = "osBlocking"
+        default:          stateID = "unknown"
+        }
+        let request = UNNotificationRequest(
+            identifier: "chargeConflict-\(stateID)",
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
 }

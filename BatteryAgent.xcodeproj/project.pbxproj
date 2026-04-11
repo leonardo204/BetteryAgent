@@ -47,6 +47,9 @@
 		FAF03DCBEB33F4ABBC4FFD29 /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC5F4DA51AA89C6E3B8B2B4 /* PopoverView.swift */; };
 		FC3868715DD263D034E0689A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 358DAA874267162DA5D9D61D /* AppDelegate.swift */; };
 		FDA7E91414848BAC4953D478 /* PatternHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3716D31EA657C892A6E19E01 /* PatternHeatmapView.swift */; };
+		7D242815C216426BBA9D9368 /* ChargeLimitConflict.swift in Sources */ = {isa = PBXBuildFile; fileRef = D978FF81D6D946A191A22E66 /* ChargeLimitConflict.swift */; };
+		6B874A4FEDF24934AADCF5B8 /* ConflictNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 279B1DEB35124C24B13E470F /* ConflictNotifier.swift */; };
+		EF77CFBF205C4C059894F9A6 /* ConflictBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F122753603A4D479379A9A0 /* ConflictBadgeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +121,9 @@
 		F24B6777EDE470390CCBF710 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsagePatternTracker.swift; sourceTree = "<group>"; };
 		FF09DC63E29E5B6EAE9E12BC /* BatteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryViewModel.swift; sourceTree = "<group>"; };
+		D978FF81D6D946A191A22E66 /* ChargeLimitConflict.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeLimitConflict.swift; sourceTree = "<group>"; };
+		279B1DEB35124C24B13E470F /* ConflictNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictNotifier.swift; sourceTree = "<group>"; };
+		2F122753603A4D479379A9A0 /* ConflictBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictBadgeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,6 +154,7 @@
 				6258232C9DFCD229AC0490BC /* ChargePolicy.swift */,
 				DC545DDCCFF765E570E20A5E /* ChargeRecord.swift */,
 				EEE22866C5EF3FFF4545B295 /* SmartChargingState.swift */,
+				D978FF81D6D946A191A22E66 /* ChargeLimitConflict.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -192,6 +199,7 @@
 				0A26E40F23CB45A4D55EACB3 /* BatterySliderView.swift */,
 				3F24F1C8B18DEE3337D90859 /* PopoverSmartChargingSection.swift */,
 				2EC5F4DA51AA89C6E3B8B2B4 /* PopoverView.swift */,
+				2F122753603A4D479379A9A0 /* ConflictBadgeView.swift */,
 				4F30D6B2C106E075775ADC4A /* Settings */,
 			);
 			path = Views;
@@ -259,6 +267,7 @@
 				9F8BD2F105C400A6A6306C2B /* SMCClient.swift */,
 				F9A9A45BD64F549A067137F6 /* UsagePatternTracker.swift */,
 				BB22CC33DD44EE55FF6600AA /* UpdateChecker.swift */,
+				279B1DEB35124C24B13E470F /* ConflictNotifier.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -410,6 +419,9 @@
 				C6DD7A558340802E243FA315 /* UsagePatternTracker.swift in Sources */,
 				AA11BB22CC33DD44EE55FF66 /* UpdateChecker.swift in Sources */,
 				50A70B46B3C57C288B5F709B /* XPCProtocol.swift in Sources */,
+				7D242815C216426BBA9D9368 /* ChargeLimitConflict.swift in Sources */,
+				6B874A4FEDF24934AADCF5B8 /* ConflictNotifier.swift in Sources */,
+				EF77CFBF205C4C059894F9A6 /* ConflictBadgeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -456,7 +468,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.8.0\nCFBundleVersion=26\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.9.0\nCFBundleVersion=27\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -536,7 +548,7 @@
 				DEVELOPMENT_TEAM = XU8HS9JUTS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = BatteryAgent/Resources/Info.plist;
-				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.8.0\nCFBundleVersion=26\nLSUIElement=true";
+				INFOPLIST_VALUES = "CFBundleDisplayName=BatteryAgent\nCFBundleShortVersionString=1.9.0\nCFBundleVersion=27\nLSUIElement=true";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

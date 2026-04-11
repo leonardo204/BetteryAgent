@@ -31,6 +31,7 @@ enum Constants {
         static let calendarIntegrationEnabled = "calendarIntegrationEnabled"
         static let thermalProtectionEnabled = "thermalProtectionEnabled"
         static let thermalProtectionThreshold = "thermalProtectionThreshold"
+        static let conflictAlertSnoozedUntil = "conflictAlertSnoozedUntil"
     }
 
     // MARK: - SMC Keys

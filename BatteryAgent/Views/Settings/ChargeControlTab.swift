@@ -56,16 +56,116 @@ struct ChargeControlTab: View {
                     Text("100")
                         .font(.caption)
                 }
-                if let conflict = viewModel.systemChargeLimitConflict {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.yellow)
-                        Text(conflict)
-                            .font(.caption)
+                if viewModel.conflictState != .none {
+                    ConflictBadgeView(state: viewModel.conflictState, style: .full)
+                }
+            }
+
+            Section("진단 정보") {
+                HStack {
+                    Text("OS 충전 한도")
+                    Spacer()
+                    if let sysLimit = viewModel.batteryState.systemChargeLimit {
+                        Text("\(sysLimit)%")
                             .foregroundStyle(.secondary)
+                    } else {
+                        Text("감지되지 않음")
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+
+                HStack(alignment: .top) {
+                    Text("NotChargingReason")
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(String(format: "0x%X", viewModel.batteryState.notChargingReason))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                        let reasons = ChargerDiagnostics.decodeNotCharging(viewModel.batteryState.notChargingReason)
+                        if !reasons.isEmpty {
+                            ForEach(reasons, id: \.self) { reason in
+                                Text(reason)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
+                HStack(alignment: .top) {
+                    Text("ChargerInhibitReason")
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(String(format: "0x%X", viewModel.batteryState.chargerInhibitReason))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                        let reasons = ChargerDiagnostics.decodeInhibit(viewModel.batteryState.chargerInhibitReason)
+                        if !reasons.isEmpty {
+                            ForEach(reasons, id: \.self) { reason in
+                                Text(reason)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
+                HStack {
+                    Text("실제 차단 주체")
+                    Spacer()
+                    Text(viewModel.conflictState == .none ? "—" : viewModel.conflictState.title)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                }
+
+                if case .osBlocking = viewModel.conflictState {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "lock.shield")
+                                .foregroundStyle(.purple)
+                            Text("BatteryAgent가 제어할 수 없습니다")
+                                .font(.caption.bold())
+                                .foregroundStyle(.purple)
+                        }
+                        Text(viewModel.conflictState.subtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Button("macOS 시스템 설정 열기") {
+                            viewModel.openSystemBatterySettings()
+                        }
+                        .font(.caption)
+                        .controlSize(.small)
                     }
                     .padding(8)
-                    .background(Color.yellow.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                    .background(Color.purple.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                }
+
+                if case .osLower = viewModel.conflictState {
+                    Button("BatteryAgent를 OS 한도에 맞추기") {
+                        viewModel.adjustChargeLimitToSystem()
+                    }
+                    .font(.caption)
+                    .controlSize(.small)
+                }
+
+                if case .osLower = viewModel.conflictState {
+                    let snoozed = viewModel.conflictNotifierIsSnoozed
+                    if snoozed {
+                        Button("알림 스누즈 해제") {
+                            viewModel.clearConflictSnooze()
+                        }
+                        .font(.caption)
+                        .controlSize(.small)
+                    }
+                } else if case .osBlocking = viewModel.conflictState {
+                    let snoozed = viewModel.conflictNotifierIsSnoozed
+                    if snoozed {
+                        Button("알림 스누즈 해제") {
+                            viewModel.clearConflictSnooze()
+                        }
+                        .font(.caption)
+                        .controlSize(.small)
+                    }
                 }
             }
 
